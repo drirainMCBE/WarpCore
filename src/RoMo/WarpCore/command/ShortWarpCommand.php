@@ -26,6 +26,6 @@ class ShortWarpCommand extends Command{
             $sender->sendMessage(WarpCore::getMessage("must.do.in.game"));
             return;
         }
-
+        $this->warp->teleport($sender);
     }
 }
