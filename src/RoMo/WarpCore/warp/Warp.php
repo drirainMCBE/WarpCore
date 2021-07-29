@@ -3,6 +3,7 @@
 namespace RoMo\WarpCore\warp;
 
 use pocketmine\entity\Location;
+use pocketmine\player\Player;
 
 class Warp{
 
@@ -23,5 +24,9 @@ class Warp{
 
     public function getLocation() : Location{
         return $this->location;
+    }
+
+    public function teleport(Player $player) : void{
+        //TODO
     }
 }
