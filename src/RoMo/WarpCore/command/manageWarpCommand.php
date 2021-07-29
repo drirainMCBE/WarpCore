@@ -5,6 +5,7 @@ namespace RoMo\WarpCore\command;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 use pocketmine\player\Player;
+use RoMo\WarpCore\form\manageWarpForm;
 use RoMo\WarpCore\WarpCore;
 
 class manageWarpCommand extends Command{
@@ -22,6 +23,6 @@ class manageWarpCommand extends Command{
             $sender->sendMessage(WarpCore::getMessage("must.do.in.game"));
             return;
         }
-        //TODO
+        $sender->sendForm(new manageWarpForm());
     }
 }
