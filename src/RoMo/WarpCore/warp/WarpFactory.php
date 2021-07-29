@@ -22,15 +22,34 @@ class WarpFactory{
     private function __construct(){
         $data = json_decode(file_get_contents(WarpCore::getInstance()->getDataFolder() . "warps.json"), true);
         foreach($data as $name => $locationData){
-            $this->warps[$name] = new Warp($name, new Location(
-                $locationData["x"],
-                $locationData["y"],
-                $locationData["z"],
-                $locationData["yaw"],
-                $locationData["pitch"],
-                Server::getInstance()->getWorldManager()->getWorldByName($locationData["world"])
-            ));
-            $this->registShortWarpCommand($this->warps[$name]);
+            $world = Server::getInstance()->getWorldManager()->getWorldByName($locationData["world"]);
+            if($world !== null){
+                $this->warps[$name] = new Warp($name, new Location(
+                    $locationData["x"],
+                    $locationData["y"],
+                    $locationData["z"],
+                    $locationData["yaw"],
+                    $locationData["pitch"],
+                    $world
+                ));
+                $this->registShortWarpCommand($this->warps[$name]);
+            }
+
+        }
+    }
+
+    public function save() : void{
+        $data = [];
+        foreach($this->warps as $warp){
+            $location = $warp->getLocation();
+            $data[$warp->getName()] = [
+              "x" => $location->getX(),
+              "y" => $location->getY(),
+              "z" => $location->getZ(),
+              "yaw" => $location->getYaw(),
+              "pitch" => $location->getPitch(),
+              "world" => $location->getWorld()->getFolderName()
+            ];
         }
     }
 
