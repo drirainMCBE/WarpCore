@@ -30,6 +30,7 @@ class manageWarpForm implements Form{
             $player->sendForm(new addWarpForm());
         }
         if($data === 1){
+            $player->sendForm(new removeWarpForm());
             return;
         }
     }
