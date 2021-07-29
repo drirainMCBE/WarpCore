@@ -31,4 +31,27 @@ class WarpFactory{
             ));
         }
     }
+
+    public function getAllWarps() : array{
+        return $this->warps;
+    }
+
+    public function addWarp(Warp $warp) : bool{
+        if(isset($this->warps[$warp->getName()])){
+            return false;
+        }
+        $this->warps[$warp->getName()] = $warp;
+        //TODO: REGIST COMMAND
+        return true;
+    }
+
+    public function removeWarp(Warp $warp) : bool{
+        foreach($this->warps as $name => $checkingWarp){
+            if($warp === $checkingWarp){
+                unset($this->warps[$name]);
+                //TODO: UNREIGST COMMAND
+                return true;
+            }
+        }
+    }
 }
