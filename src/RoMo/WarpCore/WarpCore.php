@@ -23,4 +23,8 @@ class WarpCore extends PluginBase{
         WarpFactory::init();
         $this->getServer()->getCommandMap()->register("WarpCore", new manageWarpCommand());
     }
+
+    public function onDisable() : void{
+        WarpCore::getInstance()->save();
+    }
 }
