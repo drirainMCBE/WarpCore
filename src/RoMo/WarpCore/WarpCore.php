@@ -5,6 +5,7 @@ namespace RoMo\WarpCore;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\SingletonTrait;
 use RoMo\WarpCore\command\manageWarpCommand;
+use RoMo\WarpCore\command\warpCommand;
 use RoMo\WarpCore\lib\translateTrait;
 use RoMo\WarpCore\warp\WarpFactory;
 
@@ -21,7 +22,10 @@ class WarpCore extends PluginBase{
         self::initMessage("kor");
         $this->saveResource("warps.json");
         WarpFactory::init();
-        $this->getServer()->getCommandMap()->register("WarpCore", new manageWarpCommand());
+        $this->getServer()->getCommandMap()->registerAll("WarpCore", [
+            new manageWarpCommand(),
+            new warpCommand()
+        ]);
     }
 
     public function onDisable() : void{
