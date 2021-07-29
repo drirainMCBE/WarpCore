@@ -4,3 +4,9 @@ author: RoMo_Official
 version: 1.0.0
 api:
   - 4.0.0
+
+permissions:
+  manage-warp:
+    default: OP
+  use-warp:
+    default: true
