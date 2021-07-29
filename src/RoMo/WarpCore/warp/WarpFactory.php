@@ -5,6 +5,7 @@ namespace RoMo\WarpCore\warp;
 use pocketmine\entity\Location;
 use pocketmine\Server;
 use pocketmine\utils\SingletonTrait;
+use RoMo\WarpCore\command\ShortWarpCommand;
 use RoMo\WarpCore\WarpCore;
 
 class WarpFactory{
@@ -29,6 +30,7 @@ class WarpFactory{
                 $locationData["pitch"],
                 Server::getInstance()->getWorldManager()->getWorldByName($locationData["world"])
             ));
+            $this->registShortWarpCommand($this->warps[$name]);
         }
     }
 
@@ -41,7 +43,7 @@ class WarpFactory{
             return false;
         }
         $this->warps[$warp->getName()] = $warp;
-        //TODO: REGIST COMMAND
+        $this->registShortWarpCommand($warp);
         return true;
     }
 
@@ -49,9 +51,28 @@ class WarpFactory{
         foreach($this->warps as $name => $checkingWarp){
             if($warp === $checkingWarp){
                 unset($this->warps[$name]);
-                //TODO: UNREIGST COMMAND
+                $this->unRegistShortWarpCommand($warp);
                 return true;
             }
+        }
+        return false;
+    }
+
+    public function registShortWarpCommand(Warp $warp) : void{
+        Server::getInstance()->getCommandMap()->register("WarpCore", new ShortWarpCommand($warp));
+        foreach(Server::getInstance()->getOnlinePlayers() as $player){
+            $player->getNetworkSession()->syncAvailableCommands();
+        }
+    }
+
+    public function unRegistShortWarpCommand(Warp $warp) : void{
+        $command = Server::getInstance()->getCommandMap()->getCommand($warp->getName());
+        if(!$command instanceof ShortWarpCommand){
+            return;
+        }
+        Server::getInstance()->getCommandMap()->unregister($command);
+        foreach(Server::getInstance()->getOnlinePlayers() as $player){
+            $player->getNetworkSession()->syncAvailableCommands();
         }
     }
 }
