@@ -13,8 +13,13 @@ class WarpCore extends PluginBase{
     use SingletonTrait;
     use translateTrait;
 
+    public function onLoad() : void{
+        self::$instance = $this;
+    }
+
     public function onEnable() : void{
         self::initMessage("kor");
+        $this->saveResource("warps.json");
         WarpFactory::init();
         $this->getServer()->getCommandMap()->register("WarpCore", new manageWarpCommand());
     }
