@@ -1,6 +1,6 @@
 <?php
 
-namespace RoMo\Teleporter\lib;
+namespace RoMo\WarpCore\lib;
 
 trait translateTrait{
 
