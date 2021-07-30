@@ -11,7 +11,7 @@ use RoMo\WarpCore\WarpCore;
 class removeWarpForm implements Form{
 
     /** @var Warp[] */
-    protected array $warps;
+    protected array $warps = [];
 
     public function __construct(){
         $this->warps = array_values(WarpFactory::getInstance()->getAllWarps());
@@ -35,6 +35,6 @@ class removeWarpForm implements Form{
         }
         $warp = $this->warps[$data];
         WarpFactory::getInstance()->removeWarp($warp);
-        $player->sendMessage(WarpCore::getMessage("success.remove.warp", $warp->getName()));
+        $player->sendMessage(WarpCore::getMessage("success.remove.warp", [$warp->getName()]));
     }
 }

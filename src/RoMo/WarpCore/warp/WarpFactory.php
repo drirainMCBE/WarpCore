@@ -11,7 +11,7 @@ use RoMo\WarpCore\WarpCore;
 class WarpFactory{
 
     /** @var Warp[] */
-    protected array $warps;
+    protected array $warps = [];
 
     use SingletonTrait;
 

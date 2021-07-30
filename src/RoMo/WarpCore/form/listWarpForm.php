@@ -11,7 +11,7 @@ use RoMo\WarpCore\WarpCore;
 class listWarpForm implements Form{
 
     /** @var Warp[] */
-    protected array $warps;
+    protected array $warps = [];
 
     public function __construct(){
         $this->warps = array_values(WarpFactory::getInstance()->getAllWarps());

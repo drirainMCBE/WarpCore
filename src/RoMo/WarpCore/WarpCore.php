@@ -29,6 +29,6 @@ class WarpCore extends PluginBase{
     }
 
     public function onDisable() : void{
-        WarpCore::getInstance()->save();
+        WarpFactory::getInstance()->save();
     }
 }
