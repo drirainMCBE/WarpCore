@@ -58,6 +58,13 @@ class WarpFactory{
         return $this->warps;
     }
 
+    public function getWarp(string $name) : ?Warp{
+        if(isset($this->warps[$name])){
+            return $this->warps[$name];
+        }
+        return null;
+    }
+
     public function addWarp(Warp $warp) : bool{
         if(isset($this->warps[$warp->getName()])){
             return false;
