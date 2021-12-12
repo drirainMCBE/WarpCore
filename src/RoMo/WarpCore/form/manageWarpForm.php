@@ -22,6 +22,7 @@ class manageWarpForm implements Form{
             ]
         ];
     }
+
     public function handleResponse(Player $player, $data) : void{
         if($data === null){
             return;

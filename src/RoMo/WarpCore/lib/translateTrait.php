@@ -11,14 +11,16 @@ trait translateTrait{
         $resourcePath = $this->getFile() . "resources/messages";
         $dataPath = $this->getDataFolder() . "messages/";
 
-        @mkdir($dataPath);
+        if(!mkdir($dataPath) && !is_dir($dataPath)){
+            throw new \RuntimeException(sprintf('Directory "%s" was not created', $dataPath));
+        }
         $dir = opendir($resourcePath);
 
         while(($read = readdir($dir))){
-            if($read != "." && $read != ".."){
+            if($read !== "." && $read !== ".."){
                 //if(!file_exists($dataPath . "/" . $read)){
-                    $messageFile = $resourcePath . "/" . $read;
-                    copy($messageFile, $dataPath . "/" . $read);
+                $messageFile = $resourcePath . "/" . $read;
+                copy($messageFile, $dataPath . "/" . $read);
                 //}
             }
         }
@@ -33,7 +35,7 @@ trait translateTrait{
         return (string) self::$data["prefix"];
     }
 
-    public static function getTranslate(string $id, array $parameters = []): string{
+    public static function getTranslate(string $id, array $parameters = []) : string{
         if(!isset(self::$data[$id])){
             return $id;
         }
@@ -48,37 +50,23 @@ trait translateTrait{
         return $str;
     }
 
-    public static function getMessage($id, array $parameters = []): string{
+    public static function getMessage($id, array $parameters = []) : string{
         return self::getPrefix() . self::getTranslate($id, $parameters);
     }
 
-    public static function getCmd($id): array{
-        $commandId = "command.{$id}";
+    public static function getCmd($id) : array{
+        $commandId = "command.$id";
 
-        if(!isset(self::$data[$commandId . ".name"])){
-            $commandName = $id;
-        }else{
-            $commandName = self::$data[$commandId . ".name"];
-        }
-
-        if(!isset(self::$data[$commandId . ".description"])){
-            $commandDescription = $id;
-        }else{
-            $commandDescription = self::$data[$commandId . ".description"];
-        }
-
-        if(!isset(self::$data[$commandId . ".usageMessage"])){
-            $commandUsageMessage = $id;
-        }else{
-            $commandUsageMessage = self::$data[$commandId . ".usageMessage"];
-        }
+        $commandName = self::$data[$commandId . ".name"] ?? $id;
+        $commandDescription = self::$data[$commandId . ".description"] ?? $id;
+        $commandUsageMessage = self::$data[$commandId . ".usageMessage"] ?? $id;
 
         $aliases = [];
 
         $count = 1;
 
-        while(isset(self::$data[$commandId . ".aliases.{$count}"])){
-            $aliases[] = self::$data[$commandId . ".aliases.{$count}"];
+        while(isset(self::$data[($commandid_count = $commandId . ".aliases.$count")])){
+            $aliases[] = self::$data[$commandid_count];
             $count++;
         }
 

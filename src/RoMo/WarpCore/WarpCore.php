@@ -2,6 +2,7 @@
 
 namespace RoMo\WarpCore;
 
+use JsonException;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\SingletonTrait;
 use RoMo\WarpCore\command\manageWarpCommand;
@@ -19,7 +20,7 @@ class WarpCore extends PluginBase{
     }
 
     public function onEnable() : void{
-        self::initMessage("kor");
+        $this->initMessage("kor");
         $this->saveResource("warps.json");
         WarpFactory::init();
         $this->getServer()->getCommandMap()->registerAll("WarpCore", [
@@ -28,6 +29,9 @@ class WarpCore extends PluginBase{
         ]);
     }
 
+    /**
+     * @throws JsonException
+     */
     public function onDisable() : void{
         WarpFactory::getInstance()->save();
     }
