@@ -2,6 +2,7 @@
 
 namespace RoMo\WarpCore\warp;
 
+use JsonException;
 use pocketmine\entity\Location;
 use pocketmine\Server;
 use pocketmine\utils\SingletonTrait;
@@ -15,43 +16,42 @@ class WarpFactory{
 
     use SingletonTrait;
 
-    public static function init(){
+    public static function init() : void{
         self::$instance = new self();
     }
 
+    /**
+     * @throws JsonException
+     */
     private function __construct(){
-        $data = json_decode(file_get_contents(WarpCore::getInstance()->getDataFolder() . "warps.json"), true);
+        $data = json_decode(file_get_contents(WarpCore::getInstance()->getDataFolder() . "warps.json"), true, 512, JSON_THROW_ON_ERROR);
         foreach($data as $name => $locationData){
             $world = Server::getInstance()->getWorldManager()->getWorldByName($locationData["world"]);
             if($world !== null){
-                $this->warps[$name] = new Warp($name, new Location(
-                    $locationData["x"],
-                    $locationData["y"],
-                    $locationData["z"],
-                    $locationData["yaw"],
-                    $locationData["pitch"],
-                    $world
-                ));
+                $this->warps[$name] = new Warp($name, new Location($locationData["x"], $locationData["y"], $locationData["z"], $world, //world가 4번째 인자임.
+                    $locationData["yaw"], $locationData["pitch"]));
                 $this->registShortWarpCommand($this->warps[$name]);
             }
-
         }
     }
 
+    /**
+     * @throws JsonException
+     */
     public function save() : void{
         $data = [];
         foreach($this->warps as $warp){
             $location = $warp->getLocation();
             $data[$warp->getName()] = [
-              "x" => $location->getX(),
-              "y" => $location->getY(),
-              "z" => $location->getZ(),
-              "yaw" => $location->getYaw(),
-              "pitch" => $location->getPitch(),
-              "world" => $location->getWorld()->getFolderName()
+                "x" => $location->getX(),
+                "y" => $location->getY(),
+                "z" => $location->getZ(),
+                "yaw" => $location->getYaw(),
+                "pitch" => $location->getPitch(),
+                "world" => $location->getWorld()->getFolderName()
             ];
         }
-        file_put_contents(WarpCore::getInstance()->getDataFolder() . "warps.json", json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        file_put_contents(WarpCore::getInstance()->getDataFolder() . "warps.json", json_encode($data, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
     }
 
     public function getAllWarps() : array{
@@ -59,10 +59,7 @@ class WarpFactory{
     }
 
     public function getWarp(string $name) : ?Warp{
-        if(isset($this->warps[$name])){
-            return $this->warps[$name];
-        }
-        return null;
+        return $this->warps[$name] ?? null;
     }
 
     public function addWarp(Warp $warp) : bool{

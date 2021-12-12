@@ -29,6 +29,7 @@ class removeWarpForm implements Form{
             "buttons" => $buttons
         ];
     }
+
     public function handleResponse(Player $player, $data) : void{
         if($data === null){
             return;
