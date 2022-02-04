@@ -71,10 +71,7 @@ class WarpFactory{
      * @return Warp|null
      */
     public function getWarp(string $name) : ?Warp{
-        if(!isset($this->warps[$name])){
-            return null;
-        }
-        return $this->warps[$name];
+        return $this->warps[$name] ?? null;
     }
 
     /**
