@@ -64,4 +64,48 @@ class WarpFactory{
         }
         file_put_contents($this->dataPath, json_encode($data, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
     }
+
+    /**
+     * @param string $name
+     *
+     * @return Warp|null
+     */
+    public function getWarp(string $name) : ?Warp{
+        if(!isset($this->warps[$name])){
+            return null;
+        }
+        return $this->warps[$name];
+    }
+
+    /**
+     * @return Warp[]
+     */
+    public function getAllWarp() : array{
+        return $this->warps;
+    }
+
+    /**
+     * @param string $name
+     *
+     * @return bool
+     */
+    public function isExistWarp(string $name) : bool{
+        return !is_null($this->getWarp($name));
+    }
+
+    /**
+     * @param Warp $warp
+     */
+    public function addWarp(Warp $warp) : void{
+        $this->warps[$warp->getName()] = $warp;
+    }
+
+    /**
+     * @param Warp $warp
+     */
+    public function removeWarp(Warp $warp) : void{
+        if(isset($this->warps[$warp->getName()])){
+            unset($this->warps[$warp->getName()]);
+        }
+    }
 }

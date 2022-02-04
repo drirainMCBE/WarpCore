@@ -51,6 +51,13 @@ class Warp{
     }
 
     /**
+     * @param bool $isCommandRegister
+     */
+    public function setIsCommandRegister(bool $isCommandRegister) : void{
+        $this->isCommandRegister = $isCommandRegister;
+    }
+
+    /**
      * @param Player $player
      * @param bool $isVisual
      * @param Player[]|null $targetVisual
