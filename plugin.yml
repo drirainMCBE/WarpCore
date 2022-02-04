@@ -1,12 +1,12 @@
 name: WarpCore
 main: RoMo\WarpCore\WarpCore
 author: RoMo_Official
-version: 1.0.0
+version: 2.0.0
 api:
   - 4.0.0
 
 permissions:
   manage-warp:
-    default: OP
+    default: op
   use-warp:
     default: true
