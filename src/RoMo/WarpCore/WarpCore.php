@@ -8,6 +8,7 @@ use pocketmine\plugin\PluginBase;
 use pocketmine\utils\SingletonTrait;
 use RoMo\Translator\Translator;
 use RoMo\Translator\TranslatorHolderTrait;
+use RoMo\WarpCore\category\CategoryFactory;
 use RoMo\WarpCore\warp\WarpFactory;
 
 class WarpCore extends PluginBase{
@@ -18,5 +19,6 @@ class WarpCore extends PluginBase{
     public function onEnable() : void{
         self::setTranslator(new Translator($this, $this->getFile(), $this->getDataFolder(), "kor", true));
         WarpFactory::init();
+        CategoryFactory::init();
     }
 }
