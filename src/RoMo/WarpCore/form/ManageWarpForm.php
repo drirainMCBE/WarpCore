@@ -37,6 +37,7 @@ class ManageWarpForm implements Form{
             return;
         }
         if($data === 1){
+            $player->sendForm(new RemoveWarpForm());
             return;
         }
         if($data === 2){
