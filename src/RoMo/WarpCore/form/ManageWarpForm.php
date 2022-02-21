@@ -41,6 +41,7 @@ class ManageWarpForm implements Form{
             return;
         }
         if($data === 2){
+            $player->sendForm(new EditWarpListForm());
             return;
         }
     }
