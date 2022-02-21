@@ -17,15 +17,9 @@ class PlayerWarpEvent extends PlayerEvent implements Cancellable{
     /** @var Warp */
     private Warp $warp;
 
-    /** @var bool */
-    private bool $isVisual;
-    private bool $isSound;
-
-    public function __construct(Player $player, Warp $warp, bool $isVisual, bool $isSound){
+    public function __construct(Player $player, Warp $warp){
         $this->player = $player;
         $this->warp = $warp;
-        $this->isVisual = $isVisual;
-        $this->isSound = $isSound;
     }
 
     /**
@@ -33,19 +27,5 @@ class PlayerWarpEvent extends PlayerEvent implements Cancellable{
      */
     public function getWarp() : Warp{
         return $this->warp;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isVisual() : bool{
-        return $this->isVisual;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isSound() : bool{
-        return $this->isSound;
     }
 }

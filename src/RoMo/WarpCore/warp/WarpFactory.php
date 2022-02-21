@@ -39,7 +39,11 @@ class WarpFactory{
                 $this->warps[$name] = new Warp(
                     $name,
                     new Location($warpData["x"], $warpData["y"], $warpData["z"], $world, $warpData["yaw"], $warpData["pitch"]),
-                    $warpData["isCommandRegister"]
+                    $warpData["isTitle"] ?? true,
+                    $warpData["isParticle"] ?? true,
+                    $warpData["isSound"] ?? true,
+                    $warpData["isPermit"] ?? true,
+                    $warpData["isCommandRegister"] ?? true
                 );
             }
         }
@@ -59,6 +63,10 @@ class WarpFactory{
                 "yaw" => $location->getYaw(),
                 "pitch" => $location->getPitch(),
                 "world" => $location->getWorld()->getFolderName(),
+                "isTitle" => $warp->isTitle(),
+                "isParticle" => $warp->isParticle(),
+                "isSound" => $warp->isSound(),
+                "isPermit" => $warp->isPermit(),
                 "isCommandRegister" => $warp->isCommandRegister()
             ];
         }
