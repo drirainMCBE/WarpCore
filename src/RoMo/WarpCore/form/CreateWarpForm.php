@@ -51,6 +51,7 @@ class CreateWarpForm implements Form{
     }
     public function handleResponse(Player $player, $data) : void{
         if($data === null){
+            $player->sendForm(new ManageWarpForm());
             return;
         }
         $translator = WarpCore::getTranslator();
