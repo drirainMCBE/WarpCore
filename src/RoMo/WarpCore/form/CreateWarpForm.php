@@ -24,7 +24,7 @@ class CreateWarpForm implements Form{
                 [
                     "type" => "toggle",
                     "text" => $translator->getTranslate("is.title.toggle"),
-                    "default" => true,
+                    "default" => true
                 ],
                 [
                     "type" => "toggle",
