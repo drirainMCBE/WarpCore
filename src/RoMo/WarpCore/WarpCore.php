@@ -11,6 +11,7 @@ use RoMo\Translator\Translator;
 use RoMo\Translator\TranslatorHolderTrait;
 use RoMo\WarpCore\category\CategoryFactory;
 use RoMo\WarpCore\command\ManageWarpCommand;
+use RoMo\WarpCore\command\WarpCommand;
 use RoMo\WarpCore\warp\WarpFactory;
 
 class WarpCore extends PluginBase{
@@ -27,7 +28,8 @@ class WarpCore extends PluginBase{
         WarpFactory::init();
         CategoryFactory::init();
         $this->getServer()->getCommandMap()->registerAll("WarpCore", [
-            new ManageWarpCommand()
+            new ManageWarpCommand(),
+            new WarpCommand()
         ]);
     }
 

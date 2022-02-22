@@ -110,7 +110,14 @@ class WarpFactory{
      */
     public function removeWarp(Warp $warp) : void{
         if(isset($this->warps[$warp->getName()])){
+            $this->warps[$warp->getName()]->commandUnregister();
             unset($this->warps[$warp->getName()]);
+        }
+    }
+
+    public function syncCommandData() : void{
+        foreach(Server::getInstance()->getOnlinePlayers() as $player){
+            $player->getNetworkSession()->syncAvailableCommands();
         }
     }
 }

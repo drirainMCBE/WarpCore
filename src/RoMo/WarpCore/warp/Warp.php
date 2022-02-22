@@ -7,8 +7,11 @@ namespace RoMo\WarpCore\warp;
 use pocketmine\entity\Location;
 use pocketmine\player\Player;
 use pocketmine\scheduler\ClosureTask;
+use pocketmine\Server;
 use pocketmine\world\particle\EndermanTeleportParticle;
 use pocketmine\world\sound\EndermanTeleportSound;
+use RoMo\WarpCore\command\ShortWarpCommand;
+use RoMo\WarpCore\command\WarpCommand;
 use RoMo\WarpCore\event\PlayerWarpEvent;
 use RoMo\WarpCore\WarpCore;
 
@@ -35,6 +38,10 @@ class Warp{
         $this->isSound = $isSound;
         $this->isPermit = $isPermit;
         $this->isCommandRegister = $isCommandRegister;
+
+        if($this->isCommandRegister){
+            $this->commandRegister();
+        }
     }
 
     /**
@@ -119,6 +126,28 @@ class Warp{
      */
     public function setIsCommandRegister(bool $isCommandRegister) : void{
         $this->isCommandRegister = $isCommandRegister;
+        if($this->isCommandRegister){
+            $this->commandRegister();
+        }else{
+            $this->commandUnregister();
+        }
+    }
+
+    public function commandRegister() : void{
+        if(Server::getInstance()->getCommandMap()->getCommand($this->getName()) instanceof ShortWarpCommand){
+            return;
+        }
+        Server::getInstance()->getCommandMap()->register("WarpCore", new ShortWarpCommand($this));
+        WarpFactory::getInstance()->syncCommandData();
+    }
+
+    public function commandUnregister() : void{
+        $command = Server::getInstance()->getCommandMap()->getCommand($this->getName());
+        if(!$command instanceof ShortWarpCommand){
+            return;
+        }
+        Server::getInstance()->getCommandMap()->unregister($command);
+        WarpFactory::getInstance()->syncCommandData();
     }
 
     /**
@@ -131,6 +160,12 @@ class Warp{
         $event->call();
         if(!$event->isCancelled()){
             $translator = WarpCore::getTranslator();
+            if(!$this->isPermit()){
+                if(!$player->hasPermission("manage-warp")){
+                    $player->sendMessage($translator->getMessage("fail.to.warp.by.not.permitting"));
+                    return;
+                }
+            }
             $player->teleport($this->getLocation());
             if($this->isTitle()){
                 $player->sendTitle($translator->getTranslate("title"), $translator->getTranslate("subtitle", [$this->getName()]));
