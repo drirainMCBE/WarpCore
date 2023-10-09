@@ -18,7 +18,7 @@ class ShortWarpCommand extends Command{
         parent::__construct($this->warp->getName(), WarpCore::getTranslator()->getTranslate("command.short.warp.description", [$this->warp->getName()]), "/" . $this->warp->getName());
         $this->setPermission("use-warp");
     }
-    public function execute(CommandSender $sender, string $commandLabel, array $args){
+    public function execute(CommandSender $sender, string $commandLabel, array $args) : void{
         if(!$sender instanceof Player){
             $sender->sendMessage(WarpCore::getTranslator()->getMessage("must.do.in.game"));
             return;

@@ -64,7 +64,8 @@ class CreateWarpForm implements Form{
             $player->sendMessage($translator->getMessage("already.exist.warp"));
             return;
         }
-        $warp = new Warp($data[0], $player->getLocation(), $data[1], $data[2], $data[3], $data[4], $data[5]);
+        $location = $player->getLocation();
+        $warp = new Warp($data[0], $location->getWorld()->getFolderName(), $location->asVector3(), $location->getYaw(), $location->getPitch(), $data[1], $data[2], $data[3], $data[4], $data[5]);
         WarpFactory::getInstance()->addWarp($warp);
         $player->sendMessage($translator->getMessage("success.create.warp", [$warp->getName()]));
     }

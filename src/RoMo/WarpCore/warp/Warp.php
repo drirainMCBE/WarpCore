@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace RoMo\WarpCore\warp;
 
 use pocketmine\entity\Location;
+use pocketmine\math\Vector3;
 use pocketmine\player\Player;
 use pocketmine\scheduler\ClosureTask;
 use pocketmine\Server;
@@ -19,9 +20,14 @@ class Warp{
 
     /** @var string */
     private string $name;
+    private string $worldName;
 
-    /** @var Location */
-    private Location $location;
+    /** @var Vector3 */
+    private Vector3 $position;
+
+    /** @var float */
+    private float $yaw;
+    private float $pitch;
 
     /** @var bool */
     private bool $isTitle;
@@ -30,9 +36,12 @@ class Warp{
     private bool $isPermit;
     private bool $isCommandRegister;
 
-    public function __construct(string $name, Location $location, bool $isTitle, bool $isParticle, bool $isSound, bool $isPermit, bool $isCommandRegister){
+    public function __construct(string $name, string $worldName, Vector3 $position, float $yaw, float $pitch, bool $isTitle, bool $isParticle, bool $isSound, bool $isPermit, bool $isCommandRegister){
         $this->name = $name;
-        $this->location = $location;
+        $this->worldName = $worldName;
+        $this->position = $position;
+        $this->yaw = $yaw;
+        $this->pitch = $pitch;
         $this->isTitle = $isTitle;
         $this->isParticle = $isParticle;
         $this->isSound = $isSound;
@@ -52,10 +61,31 @@ class Warp{
     }
 
     /**
-     * @return Location
+     * @return string
      */
-    public function getLocation() : Location{
-        return $this->location;
+    public function getWorldName() : string{
+        return $this->worldName;
+    }
+
+    /**
+     * @return Vector3
+     */
+    public function getPosition() : Vector3{
+        return $this->position;
+    }
+
+    /**
+     * @return float
+     */
+    public function getYaw() : float{
+        return $this->yaw;
+    }
+
+    /**
+     * @return float
+     */
+    public function getPitch() : float{
+        return $this->pitch;
     }
 
     /**
@@ -160,13 +190,18 @@ class Warp{
         $event->call();
         if(!$event->isCancelled()){
             $translator = WarpCore::getTranslator();
+            if(is_null(($world = Server::getInstance()->getWorldManager()->getWorldByName($this->getWorldName())))){
+                $player->sendMessage($translator->getMessage("fail.to.find.world"));
+                return;
+            }
             if(!$this->isPermit()){
                 if(!$player->hasPermission("manage-warp")){
                     $player->sendMessage($translator->getMessage("fail.to.warp.by.not.permitting"));
                     return;
                 }
             }
-            $player->teleport($this->getLocation());
+            $location = new Location($this->position->getX(), $this->position->getY(), $this->position->getZ(), $world, $this->getYaw(), $this->getPitch());
+            $player->teleport($location);
             if($this->isTitle()){
                 $player->sendTitle($translator->getTranslate("title"), $translator->getTranslate("subtitle", [$this->getName()]));
             }

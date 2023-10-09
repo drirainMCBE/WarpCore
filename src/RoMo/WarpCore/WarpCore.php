@@ -24,9 +24,8 @@ class WarpCore extends PluginBase{
     }
 
     public function onEnable() : void{
-        self::setTranslator(new Translator($this, $this->getFile(), $this->getDataFolder(), "kor", true));
+        self::setTranslator(new Translator($this, $this->getFile(), $this->getDataFolder(), "kor"));
         WarpFactory::init();
-        CategoryFactory::init();
         $this->getServer()->getCommandMap()->registerAll("WarpCore", [
             new ManageWarpCommand(),
             new WarpCommand()
@@ -36,6 +35,5 @@ class WarpCore extends PluginBase{
     /** @throws JsonException */
     public function onDisable() : void{
         WarpFactory::getInstance()->save();
-        CategoryFactory::getInstance()->save();
     }
 }

@@ -1,5 +1,5 @@
 # WarpCore
-### This is PocketMine-MP 4.0.0 plugin
+### This is PocketMine-MP 5.0.0 plugin
 
 
 ````

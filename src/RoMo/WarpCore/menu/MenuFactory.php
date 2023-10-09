@@ -2,19 +2,16 @@
 
 declare(strict_types=1);
 
-namespace RoMo\WarpCore\category;
+namespace RoMo\WarpCore\menu;
 
 use JsonException;
 use pocketmine\utils\SingletonTrait;
 use RoMo\WarpCore\warp\WarpFactory;
 use RoMo\WarpCore\WarpCore;
 
-class CategoryFactory{
+class MenuFactory{
 
     use SingletonTrait;
-
-    /** @var Category[] */
-    private array $categories = [];
 
     /** @var string */
     private string $dataPath;
@@ -27,11 +24,10 @@ class CategoryFactory{
      * @throws JsonException
      */
     private function __construct(){
-        $this->dataPath = WarpCore::getInstance()->getDataFolder() . "category.json";
+        $this->dataPath = WarpCore::getInstance()->getDataFolder() . "menu.json";
         if(!is_file($this->dataPath)){
             $this->save();
         }
-        $data = [];
         $data = json_decode(file_get_contents($this->dataPath), true, 512, JSON_THROW_ON_ERROR);
         foreach($data as $name => $warpsData){
             $warps = [];

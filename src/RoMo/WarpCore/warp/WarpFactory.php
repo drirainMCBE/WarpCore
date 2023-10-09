@@ -6,6 +6,7 @@ namespace RoMo\WarpCore\warp;
 
 use JsonException;
 use pocketmine\entity\Location;
+use pocketmine\math\Vector3;
 use pocketmine\Server;
 use pocketmine\utils\SingletonTrait;
 use RoMo\WarpCore\WarpCore;
@@ -37,7 +38,10 @@ class WarpFactory{
             $world = Server::getInstance()->getWorldManager()->getWorldByName($warpData["world"]);
             $this->warps[$name] = new Warp(
                 $name,
-                new Location($warpData["x"], $warpData["y"], $warpData["z"], $world, $warpData["yaw"], $warpData["pitch"]),
+                $warpData["world"],
+                new Vector3($warpData["x"], $warpData["y"], $warpData["z"]),
+                $warpData["yaw"],
+                $warpData["pitch"],
                 $warpData["isTitle"] ?? true,
                 $warpData["isParticle"] ?? true,
                 $warpData["isSound"] ?? true,
@@ -53,14 +57,14 @@ class WarpFactory{
     public function save() : void{
         $data = [];
         foreach($this->warps as $warp){
-            $location = $warp->getLocation();
+            $position = $warp->getPosition();
             $data[$warp->getName()] = [
-                "x" => $location->getX(),
-                "y" => $location->getY(),
-                "z" => $location->getZ(),
-                "yaw" => $location->getYaw(),
-                "pitch" => $location->getPitch(),
-                "world" => $location->getWorld()->getFolderName(),
+                "x" => $position->getX(),
+                "y" => $position->getY(),
+                "z" => $position->getZ(),
+                "yaw" => $warp->getYaw(),
+                "pitch" => $warp->getPitch(),
+                "world" => $warp->getWorldName(),
                 "isTitle" => $warp->isTitle(),
                 "isParticle" => $warp->isParticle(),
                 "isSound" => $warp->isSound(),
