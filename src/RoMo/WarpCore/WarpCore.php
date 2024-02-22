@@ -12,6 +12,7 @@ use RoMo\Translator\TranslatorHolderTrait;
 use RoMo\WarpCore\category\CategoryFactory;
 use RoMo\WarpCore\command\ManageWarpCommand;
 use RoMo\WarpCore\command\WarpCommand;
+use RoMo\WarpCore\menu\MenuFactory;
 use RoMo\WarpCore\warp\WarpFactory;
 
 class WarpCore extends PluginBase{
@@ -26,6 +27,7 @@ class WarpCore extends PluginBase{
     public function onEnable() : void{
         self::setTranslator(new Translator($this, $this->getFile(), $this->getDataFolder(), "kor"));
         WarpFactory::init();
+        MenuFactory::init();
         $this->getServer()->getCommandMap()->registerAll("WarpCore", [
             new ManageWarpCommand(),
             new WarpCommand()

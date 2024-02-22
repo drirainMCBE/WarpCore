@@ -7,6 +7,7 @@ namespace RoMo\WarpCore\command;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 use pocketmine\player\Player;
+use RoMo\WarpCore\menu\MenuFactory;
 use RoMo\WarpCore\warp\WarpFactory;
 use RoMo\WarpCore\WarpCore;
 
@@ -24,7 +25,7 @@ class WarpCommand extends Command{
             return;
         }
         if(!isset($args[0])){
-            //TODO: 목록 출력
+            $sender->sendForm(MenuFactory::getInstance()->getMainMenu()->getWarpMenuForm());
             return;
         }
         if(!WarpFactory::getInstance()->isExistWarp($args[0])){
