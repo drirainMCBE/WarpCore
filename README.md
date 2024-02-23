@@ -1,10 +1,5 @@
-# WarpCore
-### This is PocketMine-MP 5.0.0 plugin
+# ✈️ WarpCore
+> Warp System (plugin for PocketMine-MP 5)
 
-
-````
-What is PocketMine-MP?
-PocketMine-MP is open source server software for Minecraft: Bedrock Edition written in PHP
-
-PocketMine-MP Repository : https://github.com/pmmp/PocketMine-MP
-````
+## API
+visit [wiki](https://github.com/drirainMCBE/WarpCore/wiki)!
