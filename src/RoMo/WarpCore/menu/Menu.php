@@ -12,7 +12,7 @@ class Menu{
     /** @var string */
     private string $name;
 
-    /** @var Warp|Menu[] */
+    /** @var Warp[]|Menu[] */
     private array $content;
 
     private WarpMenuForm $warpMenuForm;

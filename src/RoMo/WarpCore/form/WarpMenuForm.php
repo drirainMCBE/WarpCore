@@ -15,7 +15,7 @@ class WarpMenuForm implements Form{
     /** @var array */
     private array $formData = [];
 
-    /** @var Warp|Menu[] */
+    /** @var Warp[]|Menu[] */
     private array $contentForButton = [];
 
     public function __construct(Menu $menu){
