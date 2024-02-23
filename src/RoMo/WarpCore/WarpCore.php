@@ -25,7 +25,8 @@ class WarpCore extends PluginBase{
     }
 
     public function onEnable() : void{
-        self::setTranslator(new Translator($this, $this->getFile(), $this->getDataFolder(), "kor"));
+        $this->saveDefaultConfig();
+        self::setTranslator(new Translator($this, $this->getFile(), $this->getDataFolder(), $this->getConfig()->get("language")));
         WarpFactory::init();
         MenuFactory::init();
         $this->getServer()->getCommandMap()->registerAll("WarpCore", [
