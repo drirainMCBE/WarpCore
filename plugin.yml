@@ -1,7 +1,7 @@
 name: WarpCore
 main: RoMo\WarpCore\WarpCore
 author: RoMo_Official
-version: 2.2.0
+version: 2.2.1_pre1
 api:
   - 5.0.0
 
