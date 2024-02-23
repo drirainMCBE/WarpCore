@@ -1,0 +1,11 @@
+--- # Poggit-CI Manifest. Open the CI at https://poggit.pmmp.io/ci/drirainMCBE/WarpCore
+build-by-default: true
+branches:
+- master
+projects:
+  WarpCore:
+    path: ""
+    libs:
+      - src: 	RoMo/Translator/translator
+        version: ~1.1.0
+...
