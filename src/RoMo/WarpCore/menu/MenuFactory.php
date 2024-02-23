@@ -15,9 +15,6 @@ class MenuFactory{
 
     const MAIN_MENU_NAME = "main";
 
-    /** @var string */
-    private string $dataPath;
-
     /** @var Menu[] */
     private array $menus = [];
 
