@@ -6,6 +6,6 @@ projects:
   WarpCore:
     path: ""
     libs:
-      - src: 	RoMo/Translator/translator
+      - src: RoMo/translator/translator
         version: ~1.1.0
 ...
