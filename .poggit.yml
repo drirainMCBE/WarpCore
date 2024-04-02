@@ -5,6 +5,7 @@ branches:
 projects:
   WarpCore:
     path: ""
+    icon: "assets/icon.png"
     libs:
       - src: drirainMCBE/translator/translator
         version: ~1.1.0
