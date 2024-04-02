@@ -195,7 +195,7 @@ class Warp{
                 return;
             }
             if(!$this->isPermit()){
-                if(!$player->hasPermission("manage-warp")){
+                if(!$player->hasPermission("warpcore-manage-warp")){
                     $player->sendMessage($translator->getMessage("fail.to.warp.by.not.permitting"));
                     return;
                 }

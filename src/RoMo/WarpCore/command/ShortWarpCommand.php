@@ -20,7 +20,7 @@ class ShortWarpCommand extends Command implements PluginOwned{
     public function __construct(Warp $warp){
         $this->warp = $warp;
         parent::__construct($this->warp->getName(), WarpCore::getTranslator()->getTranslate("command.short.warp.description", [$this->warp->getName()]), "/" . $this->warp->getName());
-        $this->setPermission("warpcore-use-warp");
+        $this->setPermission("warpcore.use.warp");
 
         $this->owningPlugin = WarpCore::getInstance();
     }

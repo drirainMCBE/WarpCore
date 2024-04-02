@@ -21,7 +21,7 @@ class WarpCommand extends Command implements PluginOwned{
         $translator = WarpCore::getTranslator();
         $cmd = $translator->getCmd("warp");
         parent::__construct($cmd->getName(), $cmd->getDescription(), $cmd->getUsage(), $cmd->getAliases());
-        $this->setPermission("warpcore-use-warp");
+        $this->setPermission("warpcore.use.warp");
 
         $this->owningPlugin = WarpCore::getInstance();
     }
