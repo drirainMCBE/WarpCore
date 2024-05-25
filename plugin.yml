@@ -10,3 +10,6 @@ permissions:
     default: op
   warpcore.use.warp:
     default: true
+
+depend:
+  - StarGate-Atlantis
