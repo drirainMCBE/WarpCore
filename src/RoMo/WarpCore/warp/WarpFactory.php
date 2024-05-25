@@ -35,7 +35,7 @@ class WarpFactory{
 
     private function __construct(){
         $this->database = WarpCore::getInstance()->getDatabase();
-        $this->database->executeSelect("initialization");
+        $this->database->executeGeneric("initialization");
 
         //LOAD ALL WARPS
         Await::f2c(function() : Generator{
