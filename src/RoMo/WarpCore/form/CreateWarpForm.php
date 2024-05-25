@@ -9,8 +9,8 @@ use pocketmine\player\Player;
 use RoMo\WarpCore\warp\Warp;
 use RoMo\WarpCore\warp\WarpFactory;
 use RoMo\WarpCore\WarpCore;
-use RoMo\XuidCore\libs\SOFe\AwaitGenerator\Await;
 use Generator;
+use SOFe\AwaitGenerator\Await;
 use Throwable;
 
 class CreateWarpForm implements Form{
