@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS warp
 (
     name                VARCHAR(50) NOT NULL PRIMARY KEY COMMENT 'warp name',
     server_name         VARCHAR(50) NOT NULL COMMENT 'server where warp exist',
+    world_name          VARCHAR(50) NOT NULL COMMENT 'world name',
     x                   FLOAT       NOT NULL COMMENT 'position x',
     y                   FLOAT       NOT NULL COMMENT 'position y',
     z                   FLOAT       NOT NULL COMMENT 'position z',
@@ -20,6 +21,7 @@ CREATE TABLE IF NOT EXISTS warp
 -- #    { add
 -- #        :name string
 -- #        :server_name string
+-- #        :world_name string
 -- #        :x float
 -- #        :y float
 -- #        :z float
@@ -32,6 +34,7 @@ CREATE TABLE IF NOT EXISTS warp
 -- #        :is_command_register bool
 INSERT IGNORE INTO warp(name,
                         server_name,
+                        world_name,
                         x,
                         y,
                         z,
@@ -44,6 +47,7 @@ INSERT IGNORE INTO warp(name,
                         is_command_register)
 VALUES (:name,
         :server_name,
+        :world_name,
         :x,
         :y,
         :z,

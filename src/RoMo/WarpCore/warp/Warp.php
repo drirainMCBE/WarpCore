@@ -8,6 +8,7 @@ use pocketmine\entity\Location;
 use pocketmine\math\Vector3;
 use pocketmine\player\Player;
 use pocketmine\scheduler\ClosureTask;
+use pocketmine\scheduler\TaskScheduler;
 use pocketmine\Server;
 use pocketmine\world\particle\EndermanTeleportParticle;
 use pocketmine\world\sound\EndermanTeleportSound;
@@ -20,6 +21,7 @@ class Warp{
 
     /** @var string */
     private string $name;
+    private string $serverName;
     private string $worldName;
 
     /** @var Vector3 */
@@ -36,8 +38,11 @@ class Warp{
     private bool $isPermit;
     private bool $isCommandRegister;
 
-    public function __construct(string $name, string $worldName, Vector3 $position, float $yaw, float $pitch, bool $isTitle, bool $isParticle, bool $isSound, bool $isPermit, bool $isCommandRegister){
+    private TaskScheduler $scheduler;
+
+    public function __construct(string $name, string $serverName, string $worldName, Vector3 $position, float $yaw, float $pitch, bool $isTitle, bool $isParticle, bool $isSound, bool $isPermit, bool $isCommandRegister){
         $this->name = $name;
+        $this->serverName = $serverName;
         $this->worldName = $worldName;
         $this->position = $position;
         $this->yaw = $yaw;
@@ -51,6 +56,8 @@ class Warp{
         if($this->isCommandRegister){
             $this->commandRegister();
         }
+
+        $this->scheduler = WarpCore::getInstance()->getScheduler();
     }
 
     /**
@@ -58,6 +65,13 @@ class Warp{
      */
     public function getName() : string{
         return $this->name;
+    }
+
+    /**
+     * @return string
+     */
+    public function getServerName() : string{
+        return $this->serverName;
     }
 
     /**
@@ -190,11 +204,11 @@ class Warp{
         $event->call();
         if(!$event->isCancelled()){
             $translator = WarpCore::getTranslator();
-            if(is_null(($world = Server::getInstance()->getWorldManager()->getWorldByName($this->getWorldName())))){
+            if(is_null(($world = Server::getInstance()->getWorldManager()->getWorldByName($this->worldName)))){
                 $player->sendMessage($translator->getMessage("fail.to.find.world"));
                 return;
             }
-            if(!$this->isPermit()){
+            if(!$this->isPermit){
                 if(!$player->hasPermission("warpcore-manage-warp")){
                     $player->sendMessage($translator->getMessage("fail.to.warp.by.not.permitting"));
                     return;
@@ -202,12 +216,12 @@ class Warp{
             }
             $location = new Location($this->position->getX(), $this->position->getY(), $this->position->getZ(), $world, $this->getYaw(), $this->getPitch());
             $player->teleport($location);
-            if($this->isTitle()){
+            if($this->isTitle){
                 $player->sendTitle($translator->getTranslate("title"), $translator->getTranslate("subtitle", [$this->getName()]));
             }
-            $isParticle = $this->isParticle();
-            $isSound = $this->isSound();
-            WarpCore::getInstance()->getScheduler()->scheduleDelayedTask(new ClosureTask(function() use ($player, $isParticle, $targetVisual, $isSound, $targetSound) : void{
+            $isParticle = $this->isParticle;
+            $isSound = $this->isSound;
+            $this->scheduler->scheduleDelayedTask(new ClosureTask(function() use ($player, $isParticle, $targetVisual, $isSound, $targetSound) : void{
                 if(!$isParticle && !$isSound){
                     return;
                 }

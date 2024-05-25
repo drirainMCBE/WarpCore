@@ -4,75 +4,52 @@ declare(strict_types=1);
 
 namespace RoMo\WarpCore\warp;
 
-use JsonException;
-use pocketmine\entity\Location;
 use pocketmine\math\Vector3;
 use pocketmine\Server;
 use pocketmine\utils\SingletonTrait;
+use poggit\libasynql\DataConnector;
 use RoMo\WarpCore\WarpCore;
+use RoMo\XuidCore\libs\SOFe\AwaitGenerator\Await;
+use Generator;
 
 class WarpFactory{
 
     use SingletonTrait;
 
+    private DataConnector $database;
+
     /** @var Warp[] */
     private array $warps = [];
-
-    /** @var string */
-    private string $dataPath;
 
     public static function init() : void{
         self::$instance = new self();
     }
 
-    /**
-     * @throws JsonException
-     */
     private function __construct(){
-        $this->dataPath = WarpCore::getInstance()->getDataFolder() . "warps.json";
-        if(!is_file($this->dataPath)){
-            $this->save();
-        }
-        $data = json_decode(file_get_contents($this->dataPath), true, 512, JSON_THROW_ON_ERROR);
-        foreach($data as $name => $warpData){
-            $world = Server::getInstance()->getWorldManager()->getWorldByName($warpData["world"]);
-            $this->warps[$name] = new Warp(
-                $name,
-                $warpData["world"],
-                new Vector3($warpData["x"], $warpData["y"], $warpData["z"]),
-                $warpData["yaw"],
-                $warpData["pitch"],
-                $warpData["isTitle"] ?? true,
-                $warpData["isParticle"] ?? true,
-                $warpData["isSound"] ?? true,
-                $warpData["isPermit"] ?? true,
-                $warpData["isCommandRegister"] ?? true
-            );
-        }
-    }
+        $this->database = WarpCore::getInstance()->getDatabase();
+        $this->database->executeSelect("initialization");
 
-    /**
-     * @throws JsonException
-     */
-    public function save() : void{
-        $data = [];
-        foreach($this->warps as $warp){
-            $position = $warp->getPosition();
-            $data[$warp->getName()] = [
-                "x" => $position->getX(),
-                "y" => $position->getY(),
-                "z" => $position->getZ(),
-                "yaw" => $warp->getYaw(),
-                "pitch" => $warp->getPitch(),
-                "world" => $warp->getWorldName(),
-                "isTitle" => $warp->isTitle(),
-                "isParticle" => $warp->isParticle(),
-                "isSound" => $warp->isSound(),
-                "isPermit" => $warp->isPermit(),
-                "isCommandRegister" => $warp->isCommandRegister()
-            ];
-        }
-        file_put_contents($this->dataPath, json_encode($data, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+        //LOAD ALL WARPS
+        Await::f2c(function() : Generator{
+            $rows = yield from $this->database->asyncSelect("warp.get.all");
+
+            foreach($rows as $row){
+                $warp = new Warp(
+                    $row["name"],
+                    $row["server_name"],
+                    $row["world_name"],
+                    new Vector3($row["x"], $row["y"], $row["z"]),
+                    $row["yaw"],
+                    $row["pitch"],
+                    (boolean) $row["is_title"],
+                    (boolean) $row["is_particle"],
+                    (boolean) $row["is_sound"],
+                    (boolean) $row["is_permit"],
+                    (boolean) $row["is_command_register"]
+                );
+                $this->warps[$warp->getName()] = $warp;
+            }
+        });
     }
 
     /**
@@ -102,15 +79,40 @@ class WarpFactory{
 
     /**
      * @param Warp $warp
+     *
+     * @return Generator
      */
-    public function addWarp(Warp $warp) : void{
+    public function addWarp(Warp $warp) : Generator{
+        $vector = $warp->getPosition();
+        yield from $this->database->asyncInsert("warp.add", [
+            "name" => $warp->getName(),
+            "server_name" => $warp->getServerName(),
+            "world_name" => $warp->getWorldName(),
+            "x" => $vector->x,
+            "y" => $vector->y,
+            "z" => $vector->z,
+            "yaw" => $warp->getYaw(),
+            "pitch" => $warp->getPitch(),
+            "is_title" => $warp->isTitle(),
+            "is_particle" => $warp->isParticle(),
+            "is_sound" => $warp->isSound(),
+            "is_permit" => $warp->isPermit(),
+            "is_command_register" => $warp->isCommandRegister()
+        ]);
+
         $this->warps[$warp->getName()] = $warp;
     }
 
     /**
      * @param Warp $warp
+     *
+     * @return Generator
      */
-    public function removeWarp(Warp $warp) : void{
+    public function removeWarp(Warp $warp) : Generator{
+        yield from $this->database->asyncGeneric("warp.remove", [
+            "name" => $warp->getName()
+        ]);
+
         if(isset($this->warps[$warp->getName()])){
             $this->warps[$warp->getName()]->commandUnregister();
             unset($this->warps[$warp->getName()]);
