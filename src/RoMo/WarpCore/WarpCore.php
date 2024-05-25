@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace RoMo\WarpCore;
 
+use alemiz\sga\client\StarGateClient;
 use alemiz\sga\events\ClientAuthenticatedEvent;
 use pocketmine\event\EventPriority;
 use pocketmine\plugin\PluginBase;
@@ -27,6 +28,7 @@ class WarpCore extends PluginBase{
 
     private DataConnector $database;
 
+    private StarGateClient $starGateClient;
     private string $serverName = "";
 
     public function onLoad() : void{
@@ -42,17 +44,17 @@ class WarpCore extends PluginBase{
         WarpFactory::init();
 
         $this->getServer()->getPluginManager()->registerEvent(ClientAuthenticatedEvent::class, function(ClientAuthenticatedEvent $event) : void{
-            $client = $event->getClient();
-            $this->serverName = $client->getClientName();
+            $this->starGateClient = $event->getClient();
+            $this->serverName = $this->starGateClient->getClientName();
 
-            $codec = $event->getClient()->getProtocolCodec();
+            $codec = $this->starGateClient->getProtocolCodec();
             $codec->registerPacket(0x1d, new WarpClientConnectPacket());
             $codec->registerPacket(0x1e, new UpdateWarpPacket());
             $codec->registerPacket(0x1f, new WarpRequestPacket());
 
             $packet = new WarpClientConnectPacket();
             $packet->setClientName($this->serverName);
-            $client->sendPacket($packet);
+            $this->starGateClient->sendPacket($packet);
         }, EventPriority::NORMAL, $this);
     }
 
@@ -76,5 +78,12 @@ class WarpCore extends PluginBase{
      */
     public function getServerName() : string{
         return $this->serverName;
+    }
+
+    /**
+     * @return StarGateClient
+     */
+    public function getStarGateClient() : StarGateClient{
+        return $this->starGateClient;
     }
 }
