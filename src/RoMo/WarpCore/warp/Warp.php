@@ -18,6 +18,7 @@ use RoMo\WarpCore\protocol\UpdateWarpPacket;
 use RoMo\WarpCore\protocol\WarpRequestPacket;
 use RoMo\WarpCore\WarpCore;
 use Generator;
+use Closure;
 
 class Warp{
 
@@ -224,14 +225,22 @@ class Warp{
     }
 
     /**
-     * @param Player $player
+     * @param Player        $player
      * @param Player[]|null $targetVisual
      * @param Player[]|null $targetSound
      */
-    public function teleport(Player $player, array $targetVisual = null, array $targetSound = null, bool $isFromAnotherServer = false) : void{
+    public function teleport(Player $player, array $targetVisual = null, array $targetSound = null) : void{
         $event = new PlayerWarpEvent($player, $this);
         $event->call();
         if(!$event->isCancelled()){
+            $translator = WarpCore::getTranslator();
+            if(!$this->isPermit){
+                if(!$player->hasPermission("warpcore.manage.warp")){
+                    $player->sendMessage($translator->getMessage("fail.to.warp.by.not.permitting"));
+                    return;
+                }
+            }
+
             if($this->serverName !== $this->warpCore->getServerName()){
                 $playerName = $player->getName();
                 $packet = new WarpRequestPacket();
@@ -242,20 +251,14 @@ class Warp{
                 return;
             }
 
-
-            $translator = WarpCore::getTranslator();
             if(is_null(($world = Server::getInstance()->getWorldManager()->getWorldByName($this->worldName)))){
                 $player->sendMessage($translator->getMessage("fail.to.find.world"));
                 return;
             }
-            if(!$this->isPermit){
-                if(!$player->hasPermission("warpcore-manage-warp")){
-                    $player->sendMessage($translator->getMessage("fail.to.warp.by.not.permitting"));
-                    return;
-                }
-            }
+
             $location = new Location($this->position->getX(), $this->position->getY(), $this->position->getZ(), $world, $this->getYaw(), $this->getPitch());
             $player->teleport($location);
+
             $this->scheduler->scheduleDelayedTask(new ClosureTask(function() use ($player, $targetVisual, $targetSound, $translator) : void{
                 if($this->isTitle){
                     $player->sendTitle($translator->getTranslate("title"), $translator->getTranslate("subtitle", [$this->getName()]));
@@ -271,7 +274,35 @@ class Warp{
                 if($this->isSound){
                     $world->addSound($position, new EndermanTeleportSound(), $targetSound);
                 }
-            }), $isFromAnotherServer ? 20 : 5);
+            }), 5);
         }
+    }
+
+    public function teleportFromAnotherServer(Player $player, array $targetVisual = null, array $targetSound = null) : ?Closure{
+        $translator = WarpCore::getTranslator();
+        if(is_null(($world = Server::getInstance()->getWorldManager()->getWorldByName($this->worldName)))){
+            $player->sendMessage($translator->getMessage("fail.to.find.world"));
+            return null;
+        }
+
+        $location = new Location($this->position->getX(), $this->position->getY(), $this->position->getZ(), $world, $this->getYaw(), $this->getPitch());
+        $player->teleport($location);
+
+        return function() use ($player, $targetVisual, $targetSound, $translator) : void{
+            if($this->isTitle){
+                $player->sendTitle($translator->getTranslate("title"), $translator->getTranslate("subtitle", [$this->getName()]));
+            }
+            if(!$this->isParticle && !$this->isSound){
+                return;
+            }
+            $world = $player->getWorld();
+            $position = $player->getPosition();
+            if($this->isParticle){
+                $world->addParticle($position, new EndermanTeleportParticle(), $targetVisual);
+            }
+            if($this->isSound){
+                $world->addSound($position, new EndermanTeleportSound(), $targetSound);
+            }
+        };
     }
 }

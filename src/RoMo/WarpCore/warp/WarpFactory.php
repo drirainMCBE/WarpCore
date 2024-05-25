@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace RoMo\WarpCore\warp;
 
 use pocketmine\event\EventPriority;
+use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\event\player\PlayerLoginEvent;
 use pocketmine\math\Vector3;
 use pocketmine\Server;
@@ -16,6 +17,7 @@ use RoMo\WarpCore\WarpCore;
 use Generator;
 use SOFe\AwaitGenerator\Await;
 use Throwable;
+use Closure;
 
 class WarpFactory{
 
@@ -28,6 +30,9 @@ class WarpFactory{
 
     /** @var Warp[] */
     private array $warpQueue = [];
+
+    /** @var Closure[] */
+    private array $warpEffectQueue = [];
 
     public static function init() : void{
         self::$instance = new self();
@@ -53,9 +58,20 @@ class WarpFactory{
 
         Server::getInstance()->getPluginManager()->registerEvent(PlayerLoginEvent::class, function(PlayerLoginEvent $event) : void{
             $player = $event->getPlayer();
-            $warpQueued = $this->warpQueue[$player->getName()] ?? null;
+            $playerName = $player->getName();
+            $warpQueued = $this->warpQueue[$playerName] ?? null;
             if($warpQueued !== null){
-                $warpQueued->teleport($player, null, null, true);
+                unset($this->warpQueue[$playerName]);
+                $this->warpEffectQueue[$playerName] = $warpQueued->teleportFromAnotherServer($player);
+            }
+        }, EventPriority::NORMAL, WarpCore::getInstance());
+
+        Server::getInstance()->getPluginManager()->registerEvent(PlayerJoinEvent::class, function(PlayerJoinEvent $event) : void{
+            $playerName = $event->getPlayer()->getName();
+            $warpEffectQueued = $this->warpEffectQueue[$playerName] ?? null;
+            if($warpEffectQueued !== null){
+                unset($this->warpEffectQueue[$playerName]);
+                $warpEffectQueued();
             }
         }, EventPriority::NORMAL, WarpCore::getInstance());
     }
