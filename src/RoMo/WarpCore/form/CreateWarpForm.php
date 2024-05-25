@@ -9,6 +9,9 @@ use pocketmine\player\Player;
 use RoMo\WarpCore\warp\Warp;
 use RoMo\WarpCore\warp\WarpFactory;
 use RoMo\WarpCore\WarpCore;
+use RoMo\XuidCore\libs\SOFe\AwaitGenerator\Await;
+use Generator;
+use Throwable;
 
 class CreateWarpForm implements Form{
     public function jsonSerialize() : array{
@@ -65,8 +68,17 @@ class CreateWarpForm implements Form{
             return;
         }
         $location = $player->getLocation();
-        $warp = new Warp($data[0], $location->getWorld()->getFolderName(), $location->asVector3(), $location->getYaw(), $location->getPitch(), $data[1], $data[2], $data[3], $data[4], $data[5]);
-        WarpFactory::getInstance()->addWarp($warp);
-        $player->sendMessage($translator->getMessage("success.create.warp", [$warp->getName()]));
+        $warp = new Warp($data[0], WarpCore::getInstance()->getServerName(), $location->getWorld()->getFolderName(), $location->asVector3(), $location->getYaw(), $location->getPitch(), $data[1], $data[2], $data[3], $data[4], $data[5]);
+
+        Await::f2c(function() use ($player, $warp, $translator) : Generator{
+            try{
+                yield from WarpFactory::getInstance()->addWarp($warp);
+            }catch(Throwable $e){
+                $player->sendMessage($e->getMessage());
+                return;
+            }
+
+            $player->sendMessage($translator->getMessage("success.create.warp", [$warp->getName()]));
+        });
     }
 }
