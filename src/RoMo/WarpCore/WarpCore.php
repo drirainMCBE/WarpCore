@@ -15,6 +15,9 @@ use RoMo\Translator\TranslatorHolderTrait;
 use RoMo\WarpCore\command\ManageWarpCommand;
 use RoMo\WarpCore\command\WarpCommand;
 use RoMo\WarpCore\menu\MenuFactory;
+use RoMo\WarpCore\protocol\WarpClientConnectPacket;
+use RoMo\WarpCore\protocol\UpdateWarpPacket;
+use RoMo\WarpCore\protocol\WarpRequestPacket;
 use RoMo\WarpCore\warp\WarpFactory;
 
 class WarpCore extends PluginBase{
@@ -37,15 +40,28 @@ class WarpCore extends PluginBase{
             "mysql" => "mysql.sql"
         ]);
         WarpFactory::init();
+
+        $this->getServer()->getPluginManager()->registerEvent(ClientAuthenticatedEvent::class, function(ClientAuthenticatedEvent $event) : void{
+            $client = $event->getClient();
+            $this->serverName = $client->getClientName();
+
+            $codec = $event->getClient()->getProtocolCodec();
+            $codec->registerPacket(0x1d, new WarpClientConnectPacket());
+            $codec->registerPacket(0x1e, new UpdateWarpPacket());
+            $codec->registerPacket(0x1f, new WarpRequestPacket());
+
+            $packet = new WarpClientConnectPacket();
+            $packet->setClientName($this->serverName);
+            $client->sendPacket($packet);
+        }, EventPriority::NORMAL, $this);
+    }
+
+    public function onCompleteToLoadAllWarps() : void{
         MenuFactory::init();
         $this->getServer()->getCommandMap()->registerAll("WarpCore", [
             new ManageWarpCommand(),
             new WarpCommand()
         ]);
-
-        $this->getServer()->getPluginManager()->registerEvent(ClientAuthenticatedEvent::class, function(ClientAuthenticatedEvent $event) : void{
-            $this->serverName = $event->getClient()->getClientName();
-        }, EventPriority::NORMAL, $this);
     }
 
     /**
