@@ -9,6 +9,9 @@ use pocketmine\player\Player;
 use RoMo\WarpCore\warp\Warp;
 use RoMo\WarpCore\warp\WarpFactory;
 use RoMo\WarpCore\WarpCore;
+use SOFe\AwaitGenerator\Await;
+use Generator;
+use Throwable;
 
 class RemoveWarpForm implements Form{
 
@@ -40,7 +43,16 @@ class RemoveWarpForm implements Form{
             return;
         }
         $warp = $this->warpsForButton[$data];
-        WarpFactory::getInstance()->removeWarp($warp);
-        $player->sendMessage($translator->getMessage("success.remove.warp", [$warp->getName()]));
+
+        Await::f2c(function() use ($warp, $player, $translator) : Generator{
+            try{
+                yield from WarpFactory::getInstance()->removeWarp($warp);
+            }catch(Throwable $e){
+                $player->sendMessage($e->getMessage());
+                return;
+            }
+
+            $player->sendMessage($translator->getMessage("success.remove.warp", [$warp->getName()]));
+        });
     }
 }

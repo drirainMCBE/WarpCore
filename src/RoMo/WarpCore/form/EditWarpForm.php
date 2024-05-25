@@ -8,6 +8,9 @@ use pocketmine\form\Form;
 use pocketmine\player\Player;
 use RoMo\WarpCore\warp\Warp;
 use RoMo\WarpCore\WarpCore;
+use RoMo\XuidCore\libs\SOFe\AwaitGenerator\Await;
+use Generator;
+use Throwable;
 
 class EditWarpForm implements Form{
 
@@ -63,6 +66,16 @@ class EditWarpForm implements Form{
         $this->warp->setIsSound($data[2]);
         $this->warp->setIsPermit($data[3]);
         $this->warp->setIsCommandRegister($data[4]);
-        $player->sendMessage(WarpCore::getTranslator()->getMessage("success.edit.warp", [$this->warp->getName()]));
+
+        Await::f2c(function() use ($player) : Generator{
+            try{
+                yield from $this->warp->sendUpdateSignal();
+            }catch(Throwable $e){
+                $player->sendMessage($e->getMessage());
+                return;
+            }
+
+            $player->sendMessage(WarpCore::getTranslator()->getMessage("success.edit.warp", [$this->warp->getName()]));
+        });
     }
 }
