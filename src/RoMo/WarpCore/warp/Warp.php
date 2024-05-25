@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace RoMo\WarpCore\warp;
 
-use alemiz\sga\client\StarGateClient;
-use alemiz\sga\StarGateAtlantis;
 use pocketmine\entity\Location;
 use pocketmine\math\Vector3;
 use pocketmine\player\Player;
@@ -16,8 +14,10 @@ use pocketmine\world\particle\EndermanTeleportParticle;
 use pocketmine\world\sound\EndermanTeleportSound;
 use RoMo\WarpCore\command\ShortWarpCommand;
 use RoMo\WarpCore\event\PlayerWarpEvent;
+use RoMo\WarpCore\protocol\UpdateWarpPacket;
 use RoMo\WarpCore\protocol\WarpRequestPacket;
 use RoMo\WarpCore\WarpCore;
+use Generator;
 
 class Warp{
 
@@ -40,8 +40,8 @@ class Warp{
     private bool $isPermit;
     private bool $isCommandRegister;
 
+    private WarpCore $warpCore;
     private TaskScheduler $scheduler;
-    private ?StarGateClient $starGateClient;
 
     public function __construct(string $name, string $serverName, string $worldName, Vector3 $position, float $yaw, float $pitch, bool $isTitle, bool $isParticle, bool $isSound, bool $isPermit, bool $isCommandRegister){
         $this->name = $name;
@@ -59,8 +59,9 @@ class Warp{
         if($this->isCommandRegister){
             $this->commandRegister();
         }
+
+        $this->warpCore = WarpCore::getInstance();
         $this->scheduler = WarpCore::getInstance()->getScheduler();
-        $this->starGateClient = StarGateAtlantis::getInstance()->getDefaultClient();
     }
 
     /**
@@ -180,6 +181,31 @@ class Warp{
         }
     }
 
+    public function sendUpdateSignal() : Generator{
+        yield from $this->warpCore->getDatabase()->asyncChange("warp.edit", [
+            "name" => $this->name,
+            "is_title" => $this->isTitle,
+            "is_particle" => $this->isParticle,
+            "is_sound" => $this->isSound,
+            "is_permit" => $this->isPermit,
+            "is_command_register" => $this->isCommandRegister
+        ]);
+
+        $packet = new UpdateWarpPacket();
+        $packet->setServerName(WarpCore::getInstance()->getServerName());
+        $packet->setWarpName($this->name);
+        $packet->setUpdateType(UpdateWarpPacket::EDIT);
+        WarpCore::getInstance()->getStarGateClient()->sendPacket($packet);
+    }
+
+    public function updateWarpFromData(array $row) : void{
+        $this->isTitle = (boolean) $row["is_title"];
+        $this->isParticle = (boolean) $row["is_particle"];
+        $this->isSound = (boolean) $row["is_sound"];
+        $this->isPermit = (boolean) $row["is_permit"];
+        $this->setIsCommandRegister((boolean) $row["is_command_register"]);
+    }
+
     public function commandRegister() : void{
         if(Server::getInstance()->getCommandMap()->getCommand($this->getName()) instanceof ShortWarpCommand){
             return;
@@ -202,20 +228,17 @@ class Warp{
      * @param Player[]|null $targetVisual
      * @param Player[]|null $targetSound
      */
-    public function teleport(Player $player, array $targetVisual = null, array $targetSound = null) : void{
+    public function teleport(Player $player, array $targetVisual = null, array $targetSound = null, bool $isFromAnotherServer = false) : void{
         $event = new PlayerWarpEvent($player, $this);
         $event->call();
         if(!$event->isCancelled()){
-            if($this->serverName !== WarpCore::getInstance()->getServerName()){
-                if($this->starGateClient === null){
-                    return;
-                }
+            if($this->serverName !== $this->warpCore->getServerName()){
                 $playerName = $player->getName();
                 $packet = new WarpRequestPacket();
                 $packet->setServerName($this->serverName);
                 $packet->setWarpName($this->name);
                 $packet->setPlayerName($playerName);
-                $this->starGateClient->sendPacket($packet);
+                WarpCore::getInstance()->getStarGateClient()->sendPacket($packet);
                 return;
             }
 
@@ -233,9 +256,6 @@ class Warp{
             }
             $location = new Location($this->position->getX(), $this->position->getY(), $this->position->getZ(), $world, $this->getYaw(), $this->getPitch());
             $player->teleport($location);
-            if($this->isTitle){
-                $player->sendTitle($translator->getTranslate("title"), $translator->getTranslate("subtitle", [$this->getName()]));
-            }
             $this->scheduler->scheduleDelayedTask(new ClosureTask(function() use ($player, $targetVisual, $targetSound, $translator) : void{
                 if($this->isTitle){
                     $player->sendTitle($translator->getTranslate("title"), $translator->getTranslate("subtitle", [$this->getName()]));
@@ -251,7 +271,7 @@ class Warp{
                 if($this->isSound){
                     $world->addSound($position, new EndermanTeleportSound(), $targetSound);
                 }
-            }), 20);
+            }), $isFromAnotherServer ? 20 : 5);
         }
     }
 }

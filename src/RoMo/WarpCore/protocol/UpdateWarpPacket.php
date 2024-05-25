@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace RoMo\WarpCore\protocol;
 
+use alemiz\sga\codec\StarGatePacketHandler;
 use alemiz\sga\protocol\StarGatePacket;
 use alemiz\sga\protocol\types\PacketHelper;
+use RoMo\WarpCore\warp\WarpFactory;
 use RoMo\WarpCore\WarpCore;
 
 class UpdateWarpPacket extends StarGatePacket{
@@ -34,6 +36,27 @@ class UpdateWarpPacket extends StarGatePacket{
     }
 
     /**
+     * @return String
+     */
+    public function getServerName() : string{
+        return $this->serverName;
+    }
+
+    /**
+     * @param String $serverName
+     */
+    public function setServerName(string $serverName) : void{
+        $this->serverName = $serverName;
+    }
+
+    /**
+     * @return string
+     */
+    public function getWarpName() : string{
+        return $this->warpName;
+    }
+
+    /**
      * @param string $warpName
      */
     public function setWarpName(string $warpName) : void{
@@ -41,9 +64,21 @@ class UpdateWarpPacket extends StarGatePacket{
     }
 
     /**
+     * @return int
+     */
+    public function getUpdateType() : int{
+        return $this->updateType;
+    }
+
+    /**
      * @param int $updateType
      */
     public function setUpdateType(int $updateType) : void{
         $this->updateType = $updateType;
+    }
+
+    public function handle(StarGatePacketHandler $handler) : bool{
+        WarpFactory::getInstance()->onWarpUpdate($this);
+        return true;
     }
 }
