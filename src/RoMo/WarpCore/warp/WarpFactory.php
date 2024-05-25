@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace RoMo\WarpCore\warp;
 
+use pocketmine\event\EventPriority;
+use pocketmine\event\player\PlayerLoginEvent;
 use pocketmine\math\Vector3;
 use pocketmine\Server;
 use pocketmine\utils\SingletonTrait;
 use poggit\libasynql\DataConnector;
+use RoMo\WarpCore\protocol\WarpRequestPacket;
 use RoMo\WarpCore\WarpCore;
-use RoMo\XuidCore\libs\SOFe\AwaitGenerator\Await;
 use Generator;
+use SOFe\AwaitGenerator\Await;
 
 class WarpFactory{
 
@@ -20,6 +23,9 @@ class WarpFactory{
 
     /** @var Warp[] */
     private array $warps = [];
+
+    /** @var Warp[] */
+    private array $warpQueue = [];
 
     public static function init() : void{
         self::$instance = new self();
@@ -49,7 +55,17 @@ class WarpFactory{
                 );
                 $this->warps[$warp->getName()] = $warp;
             }
+
+            WarpCore::getInstance()->onCompleteToLoadAllWarps();
         });
+
+        Server::getInstance()->getPluginManager()->registerEvent(PlayerLoginEvent::class, function(PlayerLoginEvent $event) : void{
+            $player = $event->getPlayer();
+            $warpQueued = $this->warpQueue[$player->getName()] ?? null;
+            if($warpQueued !== null){
+                $warpQueued->teleport($player);
+            }
+        }, EventPriority::NORMAL, WarpCore::getInstance());
     }
 
     /**
@@ -122,6 +138,20 @@ class WarpFactory{
     public function syncCommandData() : void{
         foreach(Server::getInstance()->getOnlinePlayers() as $player){
             $player->getNetworkSession()->syncAvailableCommands();
+        }
+    }
+
+    public function onWarpRequest(WarpRequestPacket $packet) : void{
+        $warp = $this->warps[$packet->getWarpName()] ?? null;
+        if(is_null($warp)){
+            return;
+        }
+        $playerName = $packet->getPlayerName();
+        $player = Server::getInstance()->getPlayerExact($playerName);
+        if(is_null($player)){
+            $this->warpQueue[$playerName] = $warp;
+        }else{
+            $warp->teleport($player);
         }
     }
 }
