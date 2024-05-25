@@ -10,10 +10,12 @@ use pocketmine\math\Vector3;
 use pocketmine\Server;
 use pocketmine\utils\SingletonTrait;
 use poggit\libasynql\DataConnector;
+use RoMo\WarpCore\protocol\UpdateWarpPacket;
 use RoMo\WarpCore\protocol\WarpRequestPacket;
 use RoMo\WarpCore\WarpCore;
 use Generator;
 use SOFe\AwaitGenerator\Await;
+use Throwable;
 
 class WarpFactory{
 
@@ -40,20 +42,10 @@ class WarpFactory{
             $rows = yield from $this->database->asyncSelect("warp.get.all");
 
             foreach($rows as $row){
-                $warp = new Warp(
-                    $row["name"],
-                    $row["server_name"],
-                    $row["world_name"],
-                    new Vector3($row["x"], $row["y"], $row["z"]),
-                    $row["yaw"],
-                    $row["pitch"],
-                    (boolean) $row["is_title"],
-                    (boolean) $row["is_particle"],
-                    (boolean) $row["is_sound"],
-                    (boolean) $row["is_permit"],
-                    (boolean) $row["is_command_register"]
-                );
-                $this->warps[$warp->getName()] = $warp;
+                $warp = $this->getWarpFromData($row);
+                if($warp !== null){
+                    $this->warps[$warp->getName()] = $warp;
+                }
             }
 
             WarpCore::getInstance()->onCompleteToLoadAllWarps();
@@ -63,9 +55,30 @@ class WarpFactory{
             $player = $event->getPlayer();
             $warpQueued = $this->warpQueue[$player->getName()] ?? null;
             if($warpQueued !== null){
-                $warpQueued->teleport($player);
+                $warpQueued->teleport($player, null, null, true);
             }
         }, EventPriority::NORMAL, WarpCore::getInstance());
+    }
+
+    public function getWarpFromData(array $row) : ?Warp{
+        try{
+            return new Warp(
+                $row["name"],
+                $row["server_name"],
+                $row["world_name"],
+                new Vector3($row["x"], $row["y"], $row["z"]),
+                $row["yaw"],
+                $row["pitch"],
+                (boolean) $row["is_title"],
+                (boolean) $row["is_particle"],
+                (boolean) $row["is_sound"],
+                (boolean) $row["is_permit"],
+                (boolean) $row["is_command_register"]
+            );
+        } catch(Throwable $e){
+            return null;
+        }
+
     }
 
     /**
@@ -117,6 +130,12 @@ class WarpFactory{
         ]);
 
         $this->warps[$warp->getName()] = $warp;
+
+        $packet = new UpdateWarpPacket();
+        $packet->setServerName(WarpCore::getInstance()->getServerName());
+        $packet->setWarpName($warp->getName());
+        $packet->setUpdateType(UpdateWarpPacket::CREATE);
+        WarpCore::getInstance()->getStarGateClient()->sendPacket($packet);
     }
 
     /**
@@ -133,11 +152,55 @@ class WarpFactory{
             $this->warps[$warp->getName()]->commandUnregister();
             unset($this->warps[$warp->getName()]);
         }
+
+        $packet = new UpdateWarpPacket();
+        $packet->setServerName(WarpCore::getInstance()->getServerName());
+        $packet->setWarpName($warp->getName());
+        $packet->setUpdateType(UpdateWarpPacket::REMOVE);
+        WarpCore::getInstance()->getStarGateClient()->sendPacket($packet);
     }
 
     public function syncCommandData() : void{
         foreach(Server::getInstance()->getOnlinePlayers() as $player){
             $player->getNetworkSession()->syncAvailableCommands();
+        }
+    }
+
+    public function onWarpUpdate(UpdateWarpPacket $packet) : void{
+        switch($packet->getUpdateType()){
+            case UpdateWarpPacket::CREATE:
+                Await::f2c(function() use ($packet) : Generator{
+                    $rows = yield from $this->database->asyncSelect("warp.get", ["name" => $packet->getWarpName()]);
+                    if(!isset($rows[0])){
+                        return;
+                    }
+                    $warp = $this->getWarpFromData($rows[0]);
+                    if($warp === null){
+                        return;
+                    }
+                    $this->warps[$warp->getName()] = $warp;
+                });
+                break;
+            case UpdateWarpPacket::EDIT:
+                Await::f2c(function() use ($packet) : Generator{
+                    $rows = yield from $this->database->asyncSelect("warp.get", ["name" => $packet->getWarpName()]);
+                    if(!isset($rows[0])){
+                        return;
+                    }
+                    $warp = $this->warps[$packet->getWarpName()] ?? null;
+                    if($warp === null){
+                        return;
+                    }
+                    $warp->updateWarpFromData($rows[0]);
+                });
+                break;
+            case UpdateWarpPacket::REMOVE:
+                $warp = $this->warps[$packet->getWarpName()] ?? null;
+                if($warp !== null){
+                    $warp->commandUnregister();
+                    unset($this->warps[$packet->getWarpName()]);
+                }
+                break;
         }
     }
 
