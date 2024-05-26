@@ -40,10 +40,10 @@ class WarpFactory{
 
     private function __construct(){
         $this->database = WarpCore::getInstance()->getDatabase();
-        $this->database->executeGeneric("initialization");
 
         //LOAD ALL WARPS
         Await::f2c(function() : Generator{
+            yield from $this->database->asyncGeneric("initialization");
             $rows = yield from $this->database->asyncSelect("warp.get.all");
 
             foreach($rows as $row){
