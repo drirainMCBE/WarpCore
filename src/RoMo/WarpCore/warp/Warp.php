@@ -10,6 +10,7 @@ use pocketmine\player\Player;
 use pocketmine\scheduler\ClosureTask;
 use pocketmine\scheduler\TaskScheduler;
 use pocketmine\Server;
+use pocketmine\world\format\Chunk;
 use pocketmine\world\particle\EndermanTeleportParticle;
 use pocketmine\world\sound\EndermanTeleportSound;
 use RoMo\WarpCore\command\ShortWarpCommand;
@@ -257,7 +258,14 @@ class Warp{
             }
 
             $location = new Location($this->position->getX(), $this->position->getY(), $this->position->getZ(), $world, $this->getYaw(), $this->getPitch());
-            $player->teleport($location);
+            $world->requestChunkPopulation($location->x >> Chunk::COORD_BIT_SIZE, $location->z >> Chunk::COORD_BIT_SIZE, null)
+                ->onCompletion(function() use ($player, $location){
+                    if($player->isConnected()){
+                        $player->teleport($location);
+                    }
+                }, function() use ($player, $translator) : void{
+                    $player->sendMessage($translator->getMessage("fail.to.find.world"));
+                });
 
             $this->scheduler->scheduleDelayedTask(new ClosureTask(function() use ($player, $targetVisual, $targetSound, $translator) : void{
                 if($this->isTitle){
@@ -286,7 +294,16 @@ class Warp{
         }
 
         $location = new Location($this->position->getX(), $this->position->getY(), $this->position->getZ(), $world, $this->getYaw(), $this->getPitch());
-        $player->teleport($location);
+
+        $world->requestChunkPopulation($location->x >> Chunk::COORD_BIT_SIZE, $location->z >> Chunk::COORD_BIT_SIZE, null)
+            ->onCompletion(function() use ($player, $location){
+                if($player->isConnected()){
+                    $player->teleport($location);
+                }
+            }, function() use ($player, $translator) : void{
+                $player->sendMessage($translator->getMessage("fail.to.find.world"));
+            });
+
 
         return function() use ($player, $targetVisual, $targetSound, $translator) : void{
             if($this->isTitle){

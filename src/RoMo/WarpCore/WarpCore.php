@@ -58,12 +58,17 @@ class WarpCore extends PluginBase{
         }, EventPriority::NORMAL, $this);
     }
 
+
     public function onCompleteToLoadAllWarps() : void{
         MenuFactory::init();
         $this->getServer()->getCommandMap()->registerAll("WarpCore", [
             new ManageWarpCommand(),
             new WarpCommand()
         ]);
+    }
+
+    protected function onDisable() : void{
+        $this->database->close();
     }
 
     /**
