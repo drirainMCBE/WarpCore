@@ -258,32 +258,25 @@ class Warp{
             }
 
             $location = new Location($this->position->getX(), $this->position->getY(), $this->position->getZ(), $world, $this->getYaw(), $this->getPitch());
-            $world->requestChunkPopulation($location->x >> Chunk::COORD_BIT_SIZE, $location->z >> Chunk::COORD_BIT_SIZE, null)
-                ->onCompletion(function() use ($player, $location){
-                    if($player->isConnected()){
-                        $player->teleport($location);
-                    }
-                }, function() use ($player, $translator) : void{
-                    $player->sendMessage($translator->getMessage("fail.to.find.world"));
-                });
-
-            $this->scheduler->scheduleDelayedTask(new ClosureTask(function() use ($player, $targetVisual, $targetSound, $translator) : void{
-                if($this->isTitle){
-                    $player->sendTitle($translator->getTranslate("title"), $translator->getTranslate("subtitle", [$this->getName()]));
-                }
-                if(!$this->isParticle && !$this->isSound){
-                    return;
-                }
-                $world = $player->getWorld();
-                $position = $player->getPosition();
-                if($this->isParticle){
-                    $world->addParticle($position, new EndermanTeleportParticle(), $targetVisual);
-                }
-                if($this->isSound){
-                    $world->addSound($position, new EndermanTeleportSound(), $targetSound);
-                }
-            }), 5);
+            $player->teleport($location);
         }
+
+        $this->scheduler->scheduleDelayedTask(new ClosureTask(function() use ($player, $targetVisual, $targetSound, $translator) : void{
+            if($this->isTitle){
+                $player->sendTitle($translator->getTranslate("title"), $translator->getTranslate("subtitle", [$this->getName()]));
+            }
+            if(!$this->isParticle && !$this->isSound){
+                return;
+            }
+            $world = $player->getWorld();
+            $position = $player->getPosition();
+            if($this->isParticle){
+                $world->addParticle($position, new EndermanTeleportParticle(), $targetVisual);
+            }
+            if($this->isSound){
+                $world->addSound($position, new EndermanTeleportSound(), $targetSound);
+            }
+        }), 5);
     }
 
     public function teleportFromAnotherServer(Player $player, array $targetVisual = null, array $targetSound = null) : ?Closure{
@@ -294,16 +287,7 @@ class Warp{
         }
 
         $location = new Location($this->position->getX(), $this->position->getY(), $this->position->getZ(), $world, $this->getYaw(), $this->getPitch());
-
-        $world->requestChunkPopulation($location->x >> Chunk::COORD_BIT_SIZE, $location->z >> Chunk::COORD_BIT_SIZE, null)
-            ->onCompletion(function() use ($player, $location){
-                if($player->isConnected()){
-                    $player->teleport($location);
-                }
-            }, function() use ($player, $translator) : void{
-                $player->sendMessage($translator->getMessage("fail.to.find.world"));
-            });
-
+        $player->teleport($location);
 
         return function() use ($player, $targetVisual, $targetSound, $translator) : void{
             if($this->isTitle){
