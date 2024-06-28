@@ -8,6 +8,11 @@ use pocketmine\event\EventPriority;
 use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\event\player\PlayerLoginEvent;
 use pocketmine\math\Vector3;
+use pocketmine\network\mcpe\protocol\CameraInstructionPacket;
+use pocketmine\network\mcpe\protocol\types\camera\CameraFadeInstruction;
+use pocketmine\network\mcpe\protocol\types\camera\CameraFadeInstructionColor;
+use pocketmine\network\mcpe\protocol\types\camera\CameraFadeInstructionTime;
+use pocketmine\network\mcpe\protocol\types\camera\CameraSetInstruction;
 use pocketmine\Server;
 use pocketmine\utils\SingletonTrait;
 use poggit\libasynql\DataConnector;
@@ -34,11 +39,24 @@ class WarpFactory{
     /** @var Closure[] */
     private array $warpEffectQueue = [];
 
+    /** @var CameraInstructionPacket */
+    private CameraInstructionPacket $cameraInstructionPacket;
+
     public static function init() : void{
         self::$instance = new self();
     }
 
     private function __construct(){
+        $this->cameraInstructionPacket = CameraInstructionPacket::create(
+            new CameraSetInstruction(0, null, null, null, null, null),
+            false,
+            new CameraFadeInstruction(
+                new CameraFadeInstructionTime(0.75, 2, 0.75),
+                new CameraFadeInstructionColor(0, 0, 0)
+            )
+        );
+
+
         $this->database = WarpCore::getInstance()->getDatabase();
 
         //LOAD ALL WARPS
@@ -89,7 +107,8 @@ class WarpFactory{
                 (boolean) $row["is_particle"],
                 (boolean) $row["is_sound"],
                 (boolean) $row["is_permit"],
-                (boolean) $row["is_command_register"]
+                (boolean) $row["is_command_register"],
+                $this->cameraInstructionPacket
             );
         } catch(Throwable $e){
             return null;
@@ -232,5 +251,12 @@ class WarpFactory{
         }else{
             $warp->teleport($player);
         }
+    }
+
+    /**
+     * @return CameraInstructionPacket
+     */
+    public function getCameraInstructionPacket() : CameraInstructionPacket{
+        return $this->cameraInstructionPacket;
     }
 }

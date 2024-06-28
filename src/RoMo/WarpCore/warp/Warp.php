@@ -6,6 +6,7 @@ namespace RoMo\WarpCore\warp;
 
 use pocketmine\entity\Location;
 use pocketmine\math\Vector3;
+use pocketmine\network\mcpe\protocol\CameraInstructionPacket;
 use pocketmine\player\Player;
 use pocketmine\scheduler\ClosureTask;
 use pocketmine\scheduler\TaskScheduler;
@@ -44,8 +45,9 @@ class Warp{
 
     private WarpCore $warpCore;
     private TaskScheduler $scheduler;
+    private CameraInstructionPacket $cameraInstructionPacket;
 
-    public function __construct(string $name, string $serverName, string $worldName, Vector3 $position, float $yaw, float $pitch, bool $isTitle, bool $isParticle, bool $isSound, bool $isPermit, bool $isCommandRegister){
+    public function __construct(string $name, string $serverName, string $worldName, Vector3 $position, float $yaw, float $pitch, bool $isTitle, bool $isParticle, bool $isSound, bool $isPermit, bool $isCommandRegister, CameraInstructionPacket $packet){
         $this->name = $name;
         $this->serverName = $serverName;
         $this->worldName = $worldName;
@@ -64,6 +66,7 @@ class Warp{
 
         $this->warpCore = WarpCore::getInstance();
         $this->scheduler = WarpCore::getInstance()->getScheduler();
+        $this->cameraInstructionPacket = $packet;
     }
 
     /**
@@ -243,12 +246,15 @@ class Warp{
             }
 
             if($this->serverName !== $this->warpCore->getServerName()){
-                $playerName = $player->getName();
-                $packet = new WarpRequestPacket();
-                $packet->setServerName($this->serverName);
-                $packet->setWarpName($this->name);
-                $packet->setPlayerName($playerName);
-                WarpCore::getInstance()->getStarGateClient()->sendPacket($packet);
+                $player->getNetworkSession()->sendDataPacket($this->cameraInstructionPacket);
+                $this->scheduler->scheduleDelayedTask(new ClosureTask(function() use ($player) {
+                    $playerName = $player->getName();
+                    $packet = new WarpRequestPacket();
+                    $packet->setServerName($this->serverName);
+                    $packet->setWarpName($this->name);
+                    $packet->setPlayerName($playerName);
+                    WarpCore::getInstance()->getStarGateClient()->sendPacket($packet);
+                }), 15);
                 return;
             }
 
