@@ -46,6 +46,8 @@ class Menu{
                 }else{
                     unset($this->formData["content"][$index]);
                 }
+            }elseif($content["type"] === "none"){
+                //NOTHING
             }else{
                 unset($this->formData["content"][$index]);
             }

@@ -25,6 +25,8 @@ class WarpMenuForm implements Form{
                 $this->contentForButton[] = $contentData["warp"];
             }elseif($contentData["type"] === "menu"){
                 $this->contentForButton[] = $contentData["menu"];
+            }elseif($contentData["type"] === "none"){
+                $this->contentForButton[] = null;
             }else{
                 continue;
             }
@@ -62,6 +64,8 @@ class WarpMenuForm implements Form{
             $value->teleport($player);
         }elseif($value instanceof Menu){
             $player->sendForm($value->getWarpMenuForm());
+        }else{
+            $player->sendForm($this);
         }
     }
 }
