@@ -25,7 +25,7 @@ class MenuFactory{
     private function __construct(){
         $dataPath = Path::join(WarpCore::getInstance()->getDataFolder() . "menu.json");
         if(is_file($dataPath)){
-            $data = json_decode(file_get_contents($dataPath), true);
+            $data = json_decode(mb_convert_encoding(file_get_contents($dataPath), "UTF-8", "auto"), true);
 
             /** @var \Closure[] $makingMenuClosures */
             $makingMenuClosures = [];
