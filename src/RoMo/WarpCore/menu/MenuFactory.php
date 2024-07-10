@@ -30,7 +30,7 @@ class MenuFactory{
             /** @var \Closure[] $makingMenuClosures */
             $makingMenuClosures = [];
 
-            var_dump($data);
+            var_dump(file_get_contents($dataPath));
 
             foreach($data as $id => $menuData){
                 [$this->menus[$id], $makingMenuClosures[]] = Menu::create($id, $menuData);
