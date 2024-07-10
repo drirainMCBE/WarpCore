@@ -41,6 +41,7 @@ class WarpFactory{
 
     /** @var CameraInstructionPacket */
     private CameraInstructionPacket $cameraInstructionPacket;
+    private CameraInstructionPacket $cameraInstructionPacketInternal;
 
     public static function init() : void{
         self::$instance = new self();
@@ -51,7 +52,15 @@ class WarpFactory{
             new CameraSetInstruction(0, null, null, null, null, null),
             false,
             new CameraFadeInstruction(
-                new CameraFadeInstructionTime(0.75, 2, 0.75),
+                new CameraFadeInstructionTime(0.5, 1.75, 0.5),
+                new CameraFadeInstructionColor(0, 0, 0)
+            )
+        );
+        $this->cameraInstructionPacketInternal = CameraInstructionPacket::create(
+            new CameraSetInstruction(0, null, null, null, null, null),
+            false,
+            new CameraFadeInstruction(
+                new CameraFadeInstructionTime(0.5, 0, 0.5),
                 new CameraFadeInstructionColor(0, 0, 0)
             )
         );
@@ -108,7 +117,8 @@ class WarpFactory{
                 (boolean) $row["is_sound"],
                 (boolean) $row["is_permit"],
                 (boolean) $row["is_command_register"],
-                $this->cameraInstructionPacket
+                $this->cameraInstructionPacket,
+                $this->cameraInstructionPacketInternal
             );
         } catch(Throwable $e){
             return null;
@@ -258,5 +268,12 @@ class WarpFactory{
      */
     public function getCameraInstructionPacket() : CameraInstructionPacket{
         return $this->cameraInstructionPacket;
+    }
+
+    /**
+     * @return CameraInstructionPacket
+     */
+    public function getCameraInstructionPacketInternal() : CameraInstructionPacket{
+        return $this->cameraInstructionPacketInternal;
     }
 }

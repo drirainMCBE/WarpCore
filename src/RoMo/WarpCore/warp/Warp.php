@@ -6,6 +6,7 @@ namespace RoMo\WarpCore\warp;
 
 use pocketmine\entity\Location;
 use pocketmine\math\Vector3;
+use pocketmine\network\mcpe\protocol\AnimateEntityPacket;
 use pocketmine\network\mcpe\protocol\CameraInstructionPacket;
 use pocketmine\player\Player;
 use pocketmine\scheduler\ClosureTask;
@@ -14,6 +15,7 @@ use pocketmine\Server;
 use pocketmine\world\format\Chunk;
 use pocketmine\world\particle\EndermanTeleportParticle;
 use pocketmine\world\sound\EndermanTeleportSound;
+use RoMo\Translator\Translator;
 use RoMo\WarpCore\command\ShortWarpCommand;
 use RoMo\WarpCore\event\PlayerWarpEvent;
 use RoMo\WarpCore\protocol\UpdateWarpPacket;
@@ -46,8 +48,10 @@ class Warp{
     private WarpCore $warpCore;
     private TaskScheduler $scheduler;
     private CameraInstructionPacket $cameraInstructionPacket;
+    private CameraInstructionPacket $cameraInstructionPacketInternal;
+    private Translator $translator;
 
-    public function __construct(string $name, string $serverName, string $worldName, Vector3 $position, float $yaw, float $pitch, bool $isTitle, bool $isParticle, bool $isSound, bool $isPermit, bool $isCommandRegister, CameraInstructionPacket $packet){
+    public function __construct(string $name, string $serverName, string $worldName, Vector3 $position, float $yaw, float $pitch, bool $isTitle, bool $isParticle, bool $isSound, bool $isPermit, bool $isCommandRegister, CameraInstructionPacket $packet, CameraInstructionPacket $packetInternal){
         $this->name = $name;
         $this->serverName = $serverName;
         $this->worldName = $worldName;
@@ -67,6 +71,8 @@ class Warp{
         $this->warpCore = WarpCore::getInstance();
         $this->scheduler = WarpCore::getInstance()->getScheduler();
         $this->cameraInstructionPacket = $packet;
+        $this->cameraInstructionPacketInternal = $packetInternal;
+        $this->translator = WarpCore::getTranslator();
     }
 
     /**
@@ -237,67 +243,110 @@ class Warp{
         $event = new PlayerWarpEvent($player, $this);
         $event->call();
         if(!$event->isCancelled()){
-            $translator = WarpCore::getTranslator();
             if(!$this->isPermit){
                 if(!$player->hasPermission("warpcore.manage.warp")){
-                    $player->sendMessage($translator->getMessage("fail.to.warp.by.not.permitting"));
+                    $player->sendMessage($this->translator->getMessage("fail.to.warp.by.not.permitting"));
                     return;
                 }
             }
-
-            if($this->serverName !== $this->warpCore->getServerName()){
+            if($this->serverName === $this->warpCore->getServerName()){
+                $player->getNetworkSession()->sendDataPacket($this->cameraInstructionPacketInternal);
+            }else{
                 $player->getNetworkSession()->sendDataPacket($this->cameraInstructionPacket);
-                $this->scheduler->scheduleDelayedTask(new ClosureTask(function() use ($player) {
+            }
+            $packet = AnimateEntityPacket::create(
+                "animation.warp.normal2",
+                "animation.blockf.normal",
+                "false",
+                1,
+                "controller.render.default",
+                0,
+                [$player->getId()]);
+            foreach($player->getViewers() as $viewer){
+                $viewer->getNetworkSession()->sendDataPacket($packet);
+            }
+            $player->getNetworkSession()->sendDataPacket($packet);
+
+            $this->scheduler->scheduleDelayedTask(new ClosureTask(function() use ($player, $targetVisual, $targetSound){
+                if(!$player->isConnected()){
+                    return;
+                }
+                if($this->serverName !== $this->warpCore->getServerName()){
                     $playerName = $player->getName();
                     $packet = new WarpRequestPacket();
                     $packet->setServerName($this->serverName);
                     $packet->setWarpName($this->name);
                     $packet->setPlayerName($playerName);
                     WarpCore::getInstance()->getStarGateClient()->sendPacket($packet);
-                }), 15);
-                return;
-            }
+                    return;
+                }
 
-            if(is_null(($world = Server::getInstance()->getWorldManager()->getWorldByName($this->worldName)))){
-                $player->sendMessage($translator->getMessage("fail.to.find.world"));
-                return;
-            }
+                if(is_null(($world = Server::getInstance()->getWorldManager()->getWorldByName($this->worldName)))){
+                    $player->sendMessage($this->translator->getMessage("fail.to.find.world"));
+                    return;
+                }
+                $location = new Location($this->position->getX(), $this->position->getY(), $this->position->getZ(), $world, $this->getYaw(), $this->getPitch());
+                $player->teleport($location);
+                $packet = AnimateEntityPacket::create(
+                    "animation.blockf.spawn",
+                    "animation.blockf.normal",
+                    "false",
+                    1,
+                    "controller.render.default",
+                    0,
+                    [$player->getId()]);
+                foreach($player->getViewers() as $viewer){
+                    $viewer->getNetworkSession()->sendDataPacket($packet);
+                }
+                $player->getNetworkSession()->sendDataPacket($packet);
 
-            $location = new Location($this->position->getX(), $this->position->getY(), $this->position->getZ(), $world, $this->getYaw(), $this->getPitch());
-            $player->teleport($location);
+                $this->scheduler->scheduleDelayedTask(new ClosureTask(function() use ($player, $targetVisual, $targetSound) : void{
+                    if(!$player->isConnected()){
+                        return;
+                    }
+                    if($this->isTitle){
+                        $player->sendTitle($this->translator->getTranslate("title"), $this->translator->getTranslate("subtitle", [$this->getName()]));
+                    }
+                    if(!$this->isParticle && !$this->isSound){
+                        return;
+                    }
+                    $world = $player->getWorld();
+                    $position = $player->getPosition();
+                    if($this->isParticle){
+                        $world->addParticle($position, new EndermanTeleportParticle(), $targetVisual);
+                    }
+                    if($this->isSound){
+                        $world->addSound($position, new EndermanTeleportSound(), $targetSound);
+                    };
+                }), 5);
+            }), 10);
         }
-
-        $this->scheduler->scheduleDelayedTask(new ClosureTask(function() use ($player, $targetVisual, $targetSound, $translator) : void{
-            if($this->isTitle){
-                $player->sendTitle($translator->getTranslate("title"), $translator->getTranslate("subtitle", [$this->getName()]));
-            }
-            if(!$this->isParticle && !$this->isSound){
-                return;
-            }
-            $world = $player->getWorld();
-            $position = $player->getPosition();
-            if($this->isParticle){
-                $world->addParticle($position, new EndermanTeleportParticle(), $targetVisual);
-            }
-            if($this->isSound){
-                $world->addSound($position, new EndermanTeleportSound(), $targetSound);
-            }
-        }), 5);
     }
 
     public function teleportFromAnotherServer(Player $player, array $targetVisual = null, array $targetSound = null) : ?Closure{
-        $translator = WarpCore::getTranslator();
         if(is_null(($world = Server::getInstance()->getWorldManager()->getWorldByName($this->worldName)))){
-            $player->sendMessage($translator->getMessage("fail.to.find.world"));
+            $player->sendMessage($this->translator->getMessage("fail.to.find.world"));
             return null;
         }
 
         $location = new Location($this->position->getX(), $this->position->getY(), $this->position->getZ(), $world, $this->getYaw(), $this->getPitch());
         $player->teleport($location);
+        $packet = AnimateEntityPacket::create(
+            "animation.blockf.spawn",
+            "animation.blockf.normal",
+            "false",
+            1,
+            "controller.render.default",
+            0,
+            [$player->getId()]);
+        foreach($player->getViewers() as $viewer){
+            $viewer->getNetworkSession()->sendDataPacket($packet);
+        }
 
-        return function() use ($player, $targetVisual, $targetSound, $translator) : void{
+        return function() use ($player, $targetVisual, $targetSound, $packet) : void{
+            $player->getNetworkSession()->sendDataPacket($packet);
             if($this->isTitle){
-                $player->sendTitle($translator->getTranslate("title"), $translator->getTranslate("subtitle", [$this->getName()]));
+                $player->sendTitle($this->translator->getTranslate("title"), $this->translator->getTranslate("subtitle", [$this->getName()]));
             }
             if(!$this->isParticle && !$this->isSound){
                 return;
@@ -309,7 +358,7 @@ class Warp{
             }
             if($this->isSound){
                 $world->addSound($position, new EndermanTeleportSound(), $targetSound);
-            }
+            };
         };
     }
 }

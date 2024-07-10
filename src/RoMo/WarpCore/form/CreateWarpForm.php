@@ -68,7 +68,7 @@ class CreateWarpForm implements Form{
             return;
         }
         $location = $player->getLocation();
-        $warp = new Warp($data[0], WarpCore::getInstance()->getServerName(), $location->getWorld()->getFolderName(), $location->asVector3(), $location->getYaw(), $location->getPitch(), $data[1], $data[2], $data[3], $data[4], $data[5], WarpFactory::getInstance()->getCameraInstructionPacket());
+        $warp = new Warp($data[0], WarpCore::getInstance()->getServerName(), $location->getWorld()->getFolderName(), $location->asVector3(), $location->getYaw(), $location->getPitch(), $data[1], $data[2], $data[3], $data[4], $data[5], WarpFactory::getInstance()->getCameraInstructionPacket(), WarpFactory::getInstance()->getCameraInstructionPacketInternal());
 
         Await::f2c(function() use ($player, $warp, $translator) : Generator{
             try{
