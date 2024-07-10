@@ -38,7 +38,7 @@ class MenuFactory{
             }
 
             if(!isset($this->menus[self::MAIN_MENU_NAME])){
-                [, $this->menus[self::MAIN_MENU_NAME]] = Menu::create(self::MAIN_MENU_NAME, []);
+                [$this->menus[self::MAIN_MENU_NAME], ] = Menu::create(self::MAIN_MENU_NAME, []);
             }
         }else{
             file_put_contents($dataPath, "{}");
