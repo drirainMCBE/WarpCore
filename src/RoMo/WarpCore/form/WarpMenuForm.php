@@ -6,6 +6,7 @@ namespace RoMo\WarpCore\form;
 
 use pocketmine\form\Form;
 use pocketmine\player\Player;
+use pocketmine\Server;
 use RoMo\WarpCore\menu\Menu;
 use RoMo\WarpCore\warp\Warp;
 use RoMo\WarpCore\WarpCore;
@@ -18,6 +19,8 @@ class WarpMenuForm implements Form{
     /** @var Warp[]|Menu[] */
     private array $contentForButton = [];
 
+    private Server $server;
+
     public function __construct(array $formData){
         $buttons = [];
         foreach($formData["content"] as $contentData){
@@ -25,6 +28,8 @@ class WarpMenuForm implements Form{
                 $this->contentForButton[] = $contentData["warp"];
             }elseif($contentData["type"] === "menu"){
                 $this->contentForButton[] = $contentData["menu"];
+            }elseif($contentData["type"] === "cmd"){
+                $this->contentForButton[] = $contentData["cmd"];
             }elseif($contentData["type"] === "none"){
                 $this->contentForButton[] = null;
             }else{
@@ -45,6 +50,8 @@ class WarpMenuForm implements Form{
             "content" => "",
             "buttons" => $buttons
         ];
+
+        $this->server = Server::getInstance();
     }
 
     public function jsonSerialize() : array{
@@ -64,6 +71,8 @@ class WarpMenuForm implements Form{
             $value->teleport($player);
         }elseif($value instanceof Menu){
             $player->sendForm($value->getWarpMenuForm());
+        }elseif(is_string($value)){
+            $this->server->dispatchCommand($player, $value);
         }else{
             $player->sendForm($this);
         }

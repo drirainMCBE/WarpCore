@@ -46,6 +46,10 @@ class Menu{
                 }else{
                     unset($this->formData["content"][$index]);
                 }
+            }elseif($content["type"] === "cmd"){
+                if(!isset($content["cmd"])){
+                    unset($this->formData["content"][$index]);
+                }
             }elseif($content["type"] === "none"){
                 //NOTHING
             }else{
