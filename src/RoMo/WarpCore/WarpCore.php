@@ -6,6 +6,7 @@ namespace RoMo\WarpCore;
 
 use alemiz\sga\client\StarGateClient;
 use alemiz\sga\events\ClientAuthenticatedEvent;
+use kim\present\sqlcore\SqlCore;
 use pocketmine\event\EventPriority;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\SingletonTrait;
@@ -37,11 +38,23 @@ class WarpCore extends PluginBase{
 
     public function onEnable() : void{
         $this->saveDefaultConfig();
+
+        //INIT TRANSLATOR
         self::setTranslator(new Translator($this, $this->getFile(), $this->getDataFolder(), $this->getConfig()->get("language")));
-        $this->database = libasynql::create($this, $this->getConfig()->get("database"), [
-            "mysql" => "mysql.sql"
-        ]);
+
+        //CREATE A CONNECTION WITH MYSQL
+        if(class_exists(SqlCore::class)){
+            $this->database = SqlCore::create($this);
+        }else{
+            $this->database = libasynql::create($this, $this->getConfig()->get("database"), [
+                "mysql" => "mysql.sql"
+            ]);
+        }
+
         WarpFactory::init();
+
+        $this->saveResource("menu.json");
+        MenuFactory::init();
 
         $this->getServer()->getPluginManager()->registerEvent(ClientAuthenticatedEvent::class, function(ClientAuthenticatedEvent $event) : void{
             $this->starGateClient = $event->getClient();
@@ -57,7 +70,6 @@ class WarpCore extends PluginBase{
             $this->starGateClient->sendPacket($packet);
         }, EventPriority::NORMAL, $this);
     }
-
 
     public function onCompleteToLoadAllWarps() : void{
         MenuFactory::init();
