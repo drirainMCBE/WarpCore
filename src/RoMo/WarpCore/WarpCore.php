@@ -44,7 +44,9 @@ class WarpCore extends PluginBase{
 
         //CREATE A CONNECTION WITH MYSQL
         if(class_exists(SqlCore::class)){
-            $this->database = SqlCore::create($this);
+            $this->database = libasynql::create($this, SqlCore::getSqlConfig(), [
+                "mysql" => "mysql.sql"
+            ]);
         }else{
             $this->database = libasynql::create($this, $this->getConfig()->get("database"), [
                 "mysql" => "mysql.sql"
