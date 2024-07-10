@@ -6,45 +6,60 @@ namespace RoMo\WarpCore\menu;
 
 use RoMo\WarpCore\form\WarpMenuForm;
 use RoMo\WarpCore\warp\Warp;
+use RoMo\WarpCore\warp\WarpFactory;
 
 class Menu{
 
     /** @var string */
-    private string $name;
+    private string $id;
 
-    /** @var Warp[]|Menu[] */
-    private array $content;
+    /** @var array */
+    private array $formData;
 
     private WarpMenuForm $warpMenuForm;
 
-    public function __construct(string $name, array $content){
-        $this->name = $name;
-        $this->content = $content;
+    public static function create(string $id, array $formData) : array{
+        $menu = new self($id, $formData);
+        return [$menu, $menu->initMenuForButton(...)];
+    }
+
+    private function __construct(string $id, array $formData){
+        $this->id = $id;
+        $this->formData = $formData;
+    }
+
+    private function initMenuForButton(array $menus) : void{
+        foreach($this->formData["content"] as $index => $content){
+            //LOAD OTHER MENUS
+            if($content["type"] === "menu"){
+                //LOAD MENU FORM BUTTON
+                $menu = $menus[$content["menu"]] ?? null;
+                if($menu !== null){
+                    $this->formData["content"][$index]["menu"] = $menu;
+                }else{
+                    unset($this->formData["content"][$index]);
+                }
+            }elseif($content["type"] === "warp"){ //LOAD WARPS
+                $warp = WarpFactory::getInstance()->getWarp($content["warp"]);
+                if($warp !== null){
+                    $this->formData["content"][$index]["warp"] = $warp;
+                }else{
+                    unset($this->formData["content"][$index]);
+                }
+            }else{
+                unset($this->formData["content"][$index]);
+            }
+        }
+        $this->formData["content"] = array_values($this->formData["content"]);
+
+        $this->warpMenuForm = new WarpMenuForm($this->formData);
     }
 
     /**
      * @return string
      */
-    public function getName() : string{
-        return $this->name;
-    }
-
-    /**
-     * @return array
-     */
-    public function getContent() : array{
-        return $this->content;
-    }
-
-    /**
-     * @param array $content
-     */
-    public function setContent(array $content) : void{
-        $this->content = $content;
-    }
-
-    public function initWarpMenuForm() : void{
-        $this->warpMenuForm = new WarpMenuForm($this);
+    public function getId() : string{
+        return $this->id;
     }
 
     /**

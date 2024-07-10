@@ -27,38 +27,18 @@ class MenuFactory{
         if(is_file($dataPath)){
             $data = json_decode(file_get_contents($dataPath), true);
 
-            //다른 메뉴로 넘어가는 데이터를 빼고 메뉴를 모두 로딩
-            foreach($data as $name => $menuData){
-                $content = [];
-                foreach($menuData as $contentData){
-                    $warp = WarpFactory::getInstance()->getWarp($contentData);
-                    if(is_null($warp)){
-                        $content[] = $contentData;
-                    }else{
-                        $content[] = $warp;
-                    }
-                }
-                $this->menus[$name] = new Menu($name, $content);
-            }
+            /** @var \Closure[] $makingMenuClosures */
+            $makingMenuClosures = [];
 
-            //메뉴의 내용에서 다른 메뉴로 넘어가는 내용을 메뉴 객체로 변경
-            foreach($this->menus as $menu){
-                $content = $menu->getContent();
-                foreach($content as $key => $value){
-                    if(is_string($value)){
-                        if(isset($this->menus[$value])){
-                           $content[$key] = $this->menus[$value];
-                        }else{
-                            unset($content[$key]);
-                        }
-                    }
-                }
-                $menu->setContent($content);
-                $menu->initWarpMenuForm();
+            foreach($data as $id => $menuData){
+                [$this->menus[$id], $makingMenuClosures[]] = Menu::create($id, $menuData);
+            }
+            foreach($makingMenuClosures as $makingMenuClosure){
+                $makingMenuClosure($this->menus);
             }
 
             if(!isset($this->menus[self::MAIN_MENU_NAME])){
-                $this->menus[self::MAIN_MENU_NAME] = new Menu(self::MAIN_MENU_NAME, []);
+                [, $this->menus[self::MAIN_MENU_NAME]] = Menu::create(self::MAIN_MENU_NAME, []);
             }
         }else{
             file_put_contents($dataPath, "{}");

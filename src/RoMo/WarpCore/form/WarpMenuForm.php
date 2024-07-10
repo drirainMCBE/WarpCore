@@ -18,26 +18,28 @@ class WarpMenuForm implements Form{
     /** @var Warp[]|Menu[] */
     private array $contentForButton = [];
 
-    public function __construct(Menu $menu){
-        $translator = WarpCore::getTranslator();
+    public function __construct(array $formData){
         $buttons = [];
-        foreach($menu->getContent() as $value){
-            $added = false;
-            if($value instanceof Warp){
-                $buttons[] = ["text" => $value->getName()];
-                $added = true;
-            }elseif($value instanceof Menu){
-                $buttons[] = ["text" => $value->getName()];
-                $added = true;
+        foreach($formData["content"] as $contentData){
+            if($contentData["type"] === "warp"){
+                $this->contentForButton[] = $contentData["warp"];
+            }elseif($contentData["type"] === "menu"){
+                $this->contentForButton[] = $contentData["menu"];
+            }else{
+                continue;
             }
-
-            if($added){
-                $this->contentForButton[] = $value;
+            $buttonData = ["text" => $contentData["text"]];
+            if(isset($contentData["image"])){
+                $buttonData["image"] = [
+                    "type" => "path",
+                    "data" => (string) $contentData["image"]
+                ];
             }
+            $buttons[] = $buttonData;
         }
         $this->formData = [
             "type" => "form",
-            "title" => $translator->getTranslate("form.title"),
+            "title" => $formData["title"],
             "content" => "",
             "buttons" => $buttons
         ];

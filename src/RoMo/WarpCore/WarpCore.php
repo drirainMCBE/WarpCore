@@ -54,7 +54,6 @@ class WarpCore extends PluginBase{
         WarpFactory::init();
 
         $this->saveResource("menu.json");
-        MenuFactory::init();
 
         $this->getServer()->getPluginManager()->registerEvent(ClientAuthenticatedEvent::class, function(ClientAuthenticatedEvent $event) : void{
             $this->starGateClient = $event->getClient();

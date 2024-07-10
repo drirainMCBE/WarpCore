@@ -1,0 +1,36 @@
+{
+  "main": {
+    "title": "워프",
+    "content": [
+      {
+        "type": "warp",
+        "warp": "스폰",
+        "text": "스폰",
+        "image": null
+      },
+      {
+        "type": "menu",
+        "menu": "mine",
+        "text": "§l§0광산\n§r§8광산으로 이동합니다",
+        "image": null
+      }
+    ]
+  },
+  "mine": {
+    "title": "광산",
+    "content": [
+      {
+        "type": "warp",
+        "warp": "초급광산",
+        "text": "§l§0초급광산\n§r§8초급자들이 이용하면 개꿀딱딱",
+        "image": null
+      },
+      {
+        "type": "warp",
+        "warp": "중급광산",
+        "text": "§l§0중급광산\n§r§8중급자들이 이용하면 개꿀딱딱",
+        "image": null
+      }
+    ]
+  }
+}

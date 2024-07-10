@@ -13,3 +13,11 @@ permissions:
 
 depend:
   - StarGate-Atlantis
+
+softdepend:
+  - SqlCore
+
+virions:
+  - SOF3/await-generator/master
+  - drirainMCBE/translator/master
+  - poggit/libasynql/master

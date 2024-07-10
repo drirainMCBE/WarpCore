@@ -9,6 +9,7 @@ use pocketmine\command\CommandSender;
 use pocketmine\player\Player;
 use pocketmine\plugin\PluginOwned;
 use pocketmine\plugin\PluginOwnedTrait;
+use RoMo\WarpCore\menu\Menu;
 use RoMo\WarpCore\menu\MenuFactory;
 use RoMo\WarpCore\warp\WarpFactory;
 use RoMo\WarpCore\WarpCore;
@@ -17,11 +18,14 @@ class WarpCommand extends Command implements PluginOwned{
 
     use PluginOwnedTrait;
 
+    private Menu $mainMenu;
+
     public function __construct(){
         $translator = WarpCore::getTranslator();
         $cmd = $translator->getCmd("warp");
         parent::__construct($cmd->getName(), $cmd->getDescription(), $cmd->getUsage(), $cmd->getAliases());
         $this->setPermission("warpcore.use.warp");
+        $this->mainMenu = MenuFactory::getInstance()->getMainMenu();
 
         $this->owningPlugin = WarpCore::getInstance();
     }
@@ -32,7 +36,7 @@ class WarpCommand extends Command implements PluginOwned{
             return;
         }
         if(!isset($args[0])){
-            $sender->sendForm(MenuFactory::getInstance()->getMainMenu()->getWarpMenuForm());
+            $sender->sendForm($this->mainMenu->getWarpMenuForm());
             return;
         }
         if(!WarpFactory::getInstance()->isExistWarp($args[0])){
