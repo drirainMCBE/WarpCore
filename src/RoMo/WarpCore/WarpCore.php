@@ -6,16 +6,22 @@ namespace RoMo\WarpCore;
 
 use alemiz\sga\client\StarGateClient;
 use alemiz\sga\events\ClientAuthenticatedEvent;
+use customiesdevs\customies\entity\CustomiesEntityFactory;
 use kim\present\sqlcore\SqlCore;
+use pocketmine\entity\EntityDataHelper;
+use pocketmine\entity\EntityFactory;
 use pocketmine\event\EventPriority;
+use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\SingletonTrait;
+use pocketmine\world\World;
 use poggit\libasynql\DataConnector;
 use poggit\libasynql\libasynql;
 use RoMo\Translator\Translator;
 use RoMo\Translator\TranslatorHolderTrait;
 use RoMo\WarpCore\command\ManageWarpCommand;
 use RoMo\WarpCore\command\WarpCommand;
+use RoMo\WarpCore\entity\WarpEffectEntity;
 use RoMo\WarpCore\menu\MenuFactory;
 use RoMo\WarpCore\protocol\WarpClientConnectPacket;
 use RoMo\WarpCore\protocol\UpdateWarpPacket;
@@ -52,6 +58,9 @@ class WarpCore extends PluginBase{
                 "mysql" => "mysql.sql"
             ]);
         }
+
+        //REGISTER ENTITY
+        CustomiesEntityFactory::getInstance()->registerEntity(WarpEffectEntity::class, WarpEffectEntity::getNetworkTypeId());
 
         WarpFactory::init();
 

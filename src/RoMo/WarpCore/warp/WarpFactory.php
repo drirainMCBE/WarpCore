@@ -12,7 +12,6 @@ use pocketmine\network\mcpe\protocol\CameraInstructionPacket;
 use pocketmine\network\mcpe\protocol\types\camera\CameraFadeInstruction;
 use pocketmine\network\mcpe\protocol\types\camera\CameraFadeInstructionColor;
 use pocketmine\network\mcpe\protocol\types\camera\CameraFadeInstructionTime;
-use pocketmine\network\mcpe\protocol\types\camera\CameraSetInstruction;
 use pocketmine\Server;
 use pocketmine\utils\SingletonTrait;
 use poggit\libasynql\DataConnector;
@@ -49,7 +48,7 @@ class WarpFactory{
 
     private function __construct(){
         $this->cameraInstructionPacket = CameraInstructionPacket::create(
-            new CameraSetInstruction(0, null, null, null, null, null),
+            null,
             false,
             new CameraFadeInstruction(
                 new CameraFadeInstructionTime(0.5, 1.75, 0.5),
@@ -57,7 +56,7 @@ class WarpFactory{
             )
         );
         $this->cameraInstructionPacketInternal = CameraInstructionPacket::create(
-            new CameraSetInstruction(0, null, null, null, null, null),
+            null,
             false,
             new CameraFadeInstruction(
                 new CameraFadeInstructionTime(0.5, 0, 0.5),

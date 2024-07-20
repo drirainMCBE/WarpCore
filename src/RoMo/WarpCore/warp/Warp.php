@@ -17,6 +17,7 @@ use pocketmine\world\particle\EndermanTeleportParticle;
 use pocketmine\world\sound\EndermanTeleportSound;
 use RoMo\Translator\Translator;
 use RoMo\WarpCore\command\ShortWarpCommand;
+use RoMo\WarpCore\entity\WarpEffectEntity;
 use RoMo\WarpCore\event\PlayerWarpEvent;
 use RoMo\WarpCore\protocol\UpdateWarpPacket;
 use RoMo\WarpCore\protocol\WarpRequestPacket;
@@ -254,18 +255,8 @@ class Warp{
             }else{
                 $player->getNetworkSession()->sendDataPacket($this->cameraInstructionPacket);
             }
-            $packet = AnimateEntityPacket::create(
-                "animation.warp.normal2",
-                "animation.blockf.normal",
-                "false",
-                1,
-                "controller.render.default",
-                0,
-                [$player->getId()]);
-            foreach($player->getViewers() as $viewer){
-                $viewer->getNetworkSession()->sendDataPacket($packet);
-            }
-            $player->getNetworkSession()->sendDataPacket($packet);
+            $entity = new WarpEffectEntity($player->getLocation());
+            $entity->spawnToAll();
 
             $this->scheduler->scheduleDelayedTask(new ClosureTask(function() use ($player, $targetVisual, $targetSound){
                 if(!$player->isConnected()){
