@@ -22,6 +22,7 @@ use RoMo\Translator\TranslatorHolderTrait;
 use RoMo\WarpCore\command\ManageWarpCommand;
 use RoMo\WarpCore\command\WarpCommand;
 use RoMo\WarpCore\entity\WarpEffectEntity;
+use RoMo\WarpCore\entity\WarpEndEffectEntity;
 use RoMo\WarpCore\menu\MenuFactory;
 use RoMo\WarpCore\protocol\WarpClientConnectPacket;
 use RoMo\WarpCore\protocol\UpdateWarpPacket;
@@ -61,6 +62,7 @@ class WarpCore extends PluginBase{
 
         //REGISTER ENTITY
         CustomiesEntityFactory::getInstance()->registerEntity(WarpEffectEntity::class, WarpEffectEntity::getNetworkTypeId());
+        CustomiesEntityFactory::getInstance()->registerEntity(WarpEndEffectEntity::class, WarpEndEffectEntity::getNetworkTypeId());
 
         WarpFactory::init();
 

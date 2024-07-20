@@ -18,6 +18,7 @@ use pocketmine\world\sound\EndermanTeleportSound;
 use RoMo\Translator\Translator;
 use RoMo\WarpCore\command\ShortWarpCommand;
 use RoMo\WarpCore\entity\WarpEffectEntity;
+use RoMo\WarpCore\entity\WarpEndEffectEntity;
 use RoMo\WarpCore\event\PlayerWarpEvent;
 use RoMo\WarpCore\protocol\UpdateWarpPacket;
 use RoMo\WarpCore\protocol\WarpRequestPacket;
@@ -277,19 +278,9 @@ class Warp{
                     return;
                 }
                 $location = new Location($this->position->getX(), $this->position->getY(), $this->position->getZ(), $world, $this->getYaw(), $this->getPitch());
+                $entity = new WarpEndEffectEntity($location);
+                $entity->spawnToAll();
                 $player->teleport($location);
-                $packet = AnimateEntityPacket::create(
-                    "animation.blockf.spawn",
-                    "animation.blockf.normal",
-                    "false",
-                    1,
-                    "controller.render.default",
-                    0,
-                    [$player->getId()]);
-                foreach($player->getViewers() as $viewer){
-                    $viewer->getNetworkSession()->sendDataPacket($packet);
-                }
-                $player->getNetworkSession()->sendDataPacket($packet);
 
                 $this->scheduler->scheduleDelayedTask(new ClosureTask(function() use ($player, $targetVisual, $targetSound) : void{
                     if(!$player->isConnected()){
@@ -306,9 +297,9 @@ class Warp{
                     if($this->isParticle){
                         $world->addParticle($position, new EndermanTeleportParticle(), $targetVisual);
                     }
-                    if($this->isSound){
+                    /*if($this->isSound){
                         $world->addSound($position, new EndermanTeleportSound(), $targetSound);
-                    };
+                    }*/;
                 }), 5);
             }), 10);
         }
@@ -321,21 +312,11 @@ class Warp{
         }
 
         $location = new Location($this->position->getX(), $this->position->getY(), $this->position->getZ(), $world, $this->getYaw(), $this->getPitch());
+        $entity = new WarpEndEffectEntity($location);
+        $entity->spawnToAll();
         $player->teleport($location);
-        $packet = AnimateEntityPacket::create(
-            "animation.blockf.spawn",
-            "animation.blockf.normal",
-            "false",
-            1,
-            "controller.render.default",
-            0,
-            [$player->getId()]);
-        foreach($player->getViewers() as $viewer){
-            $viewer->getNetworkSession()->sendDataPacket($packet);
-        }
 
-        return function() use ($player, $targetVisual, $targetSound, $packet) : void{
-            $player->getNetworkSession()->sendDataPacket($packet);
+        return function() use ($player, $targetVisual, $targetSound) : void{
             if($this->isTitle){
                 $player->sendTitle($this->translator->getTranslate("title"), $this->translator->getTranslate("subtitle", [$this->getName()]));
             }
@@ -347,9 +328,9 @@ class Warp{
             if($this->isParticle){
                 $world->addParticle($position, new EndermanTeleportParticle(), $targetVisual);
             }
-            if($this->isSound){
+            /*if($this->isSound){
                 $world->addSound($position, new EndermanTeleportSound(), $targetSound);
-            };
+            }*/;
         };
     }
 }
