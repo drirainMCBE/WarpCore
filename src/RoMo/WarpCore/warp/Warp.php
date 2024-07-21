@@ -317,6 +317,9 @@ class Warp{
         $player->teleport($location);
 
         return function() use ($player, $targetVisual, $targetSound) : void{
+            if(!$player->isConnected()){
+                return;
+            }
             if($this->isTitle){
                 $player->sendTitle($this->translator->getTranslate("title"), $this->translator->getTranslate("subtitle", [$this->getName()]));
             }
