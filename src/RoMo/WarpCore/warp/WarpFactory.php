@@ -53,7 +53,9 @@ class WarpFactory{
             new CameraFadeInstruction(
                 new CameraFadeInstructionTime(0.5, 1.75, 0.5),
                 new CameraFadeInstructionColor(0, 0, 0)
-            )
+            ),
+            null,
+            null
         );
         $this->cameraInstructionPacketInternal = CameraInstructionPacket::create(
             null,
@@ -61,7 +63,9 @@ class WarpFactory{
             new CameraFadeInstruction(
                 new CameraFadeInstructionTime(0.5, 0, 0.5),
                 new CameraFadeInstructionColor(0, 0, 0)
-            )
+            ),
+            null,
+            null
         );
 
 
