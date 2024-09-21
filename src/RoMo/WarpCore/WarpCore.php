@@ -36,7 +36,7 @@ class WarpCore extends PluginBase{
 
     private DataConnector $database;
 
-    private StarGateClient $starGateClient;
+    private ?StarGateClient $starGateClient = null;
     private string $serverName = "";
 
     public function onLoad() : void{
@@ -110,9 +110,9 @@ class WarpCore extends PluginBase{
     }
 
     /**
-     * @return StarGateClient
+     * @return StarGateClient|null
      */
-    public function getStarGateClient() : StarGateClient{
+    public function getStarGateClient() : ?StarGateClient{
         return $this->starGateClient;
     }
 }

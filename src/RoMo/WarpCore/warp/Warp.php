@@ -208,7 +208,7 @@ class Warp{
         $packet->setServerName(WarpCore::getInstance()->getServerName());
         $packet->setWarpName($this->name);
         $packet->setUpdateType(UpdateWarpPacket::EDIT);
-        WarpCore::getInstance()->getStarGateClient()->sendPacket($packet);
+        WarpCore::getInstance()->getStarGateClient()?->sendPacket($packet);
     }
 
     public function updateWarpFromData(array $row) : void{
@@ -269,7 +269,7 @@ class Warp{
                     $packet->setServerName($this->serverName);
                     $packet->setWarpName($this->name);
                     $packet->setPlayerName($playerName);
-                    WarpCore::getInstance()->getStarGateClient()->sendPacket($packet);
+                    WarpCore::getInstance()->getStarGateClient()?->sendPacket($packet);
                     return;
                 }
 

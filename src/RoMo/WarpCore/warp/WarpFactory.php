@@ -183,7 +183,7 @@ class WarpFactory{
         $packet->setServerName(WarpCore::getInstance()->getServerName());
         $packet->setWarpName($warp->getName());
         $packet->setUpdateType(UpdateWarpPacket::CREATE);
-        WarpCore::getInstance()->getStarGateClient()->sendPacket($packet);
+        WarpCore::getInstance()->getStarGateClient()?->sendPacket($packet);
     }
 
     /**
@@ -205,7 +205,7 @@ class WarpFactory{
         $packet->setServerName(WarpCore::getInstance()->getServerName());
         $packet->setWarpName($warp->getName());
         $packet->setUpdateType(UpdateWarpPacket::REMOVE);
-        WarpCore::getInstance()->getStarGateClient()->sendPacket($packet);
+        WarpCore::getInstance()->getStarGateClient()?->sendPacket($packet);
     }
 
     public function syncCommandData() : void{
